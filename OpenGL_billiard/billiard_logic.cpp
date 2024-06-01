@@ -77,6 +77,7 @@ static std::vector<Ball> g_balls;
 
 
 /**** decl of helper functions ****/
+
 static void ErrorMsg(const char* format, ...) {
 	va_list args;
 	va_start(args, format);
@@ -288,7 +289,8 @@ void billiard_logic::updateState()
 
 	// TODO: 更新球的位置与速度等信息
 	double delta_v = delta_t * FRAC_0;
-	for (auto& ball : g_balls) {
+	std::vector<Ball> temp_balls_calcmoving = g_balls;
+	for (auto& ball : temp_balls_calcmoving) {
 		double v = ball.m_velocity.Length2D();
 		if (v < delta_v || v < G_EPS) {
 			ball.m_velocity = Vector2(0.0, 0.0);
@@ -299,6 +301,14 @@ void billiard_logic::updateState()
 		}
 		ball.m_position += ball.m_velocity * delta_t;
 	}
+	// 判断是否有球飞出界外
+	// TODO: 可以写成直接起飞，也可以尝试实现更细粒度的迭代求解
+	for (const auto& ball : temp_balls_calcmoving) {
+		if (!pointInPolygon(g_corners, ball.m_position)) {
+			ErrorMsg("有球飞出去了!");
+		}
+	}
+	g_balls = temp_balls_calcmoving;
 	// collision
 	size_t ball_num = g_balls.size();
 	size_t corner_size = g_corners.size();

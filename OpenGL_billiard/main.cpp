@@ -70,7 +70,7 @@ void myinit()
 	}
 
 	// ¸ø°×Çò³õËÙ¶È
-	billiard_logic::shot({ 0.1, 10 });
+	billiard_logic::shot({ 0.1, 100 });
 
 #endif // _DEBUG
 }
