@@ -217,7 +217,7 @@ int billiard_logic::initBalls(const Vector2& white_position, const Vector2& cent
 	}
 	temp_balls.emplace_back(white_position, Vector2(), WHITE);
 
-	// TODO: 计算三角形里每个球的位置，将其加入temp_balls。个数为BALL_TRIANGLE_NUM
+	// 计算三角形里每个球的位置，将其加入temp_balls。个数为BALL_TRIANGLE_NUM
 	std::vector<Vector2> ball_positions = calcTriangleInitPosition(BALL_TRIANGLE_NUM, center_of_triangle, center_of_triangle - white_position);
 	for (const auto& pos : ball_positions) {
 		temp_balls.emplace_back(pos, Vector2(), RED);
@@ -256,6 +256,10 @@ int billiard_logic::initBalls(const Vector2& white_position, const Vector2& cent
 	}
 
 	// TODO: 判断白球与三角形中心的距离是否大于 k * BALL_RADIUS + epsilon， 保证球没有重叠
+	if (g_balls[0].m_position.Dist2D(g_balls[1].m_position) < 2 * BALL_RADIUS + G_EPS) {
+		ErrorMsg("白球与球三角形有重合");
+		return BALLSINIT_INVALID_CENTER;
+	}
 
 	// 所有判断通过
 	g_worldTime = 0.;
@@ -288,7 +292,7 @@ void billiard_logic::updateState()
 	last_time = g_worldTime;
 	DebugMsg("世界时间：%.4llf\t 帧时：%.4llf\t 球正在运动：%d", g_worldTime, delta_t, static_cast<int>(isMoving()));
 
-	// TODO: 更新球的位置与速度等信息
+	// 更新球的位置与速度等信息
 	double delta_v = delta_t * FRAC_0;
 	std::vector<Ball> temp_balls_calcmoving = g_balls;
 	for (auto& ball : temp_balls_calcmoving) {
@@ -354,7 +358,7 @@ void billiard_logic::updateState()
 				g_balls[j].m_position.y = mid_y - BALL_RADIUS * dy / dis;
 			}
 		}
-		// TODO: ball-table
+		// ball-table
 		for (size_t j = 0; j < corner_size; ++j) {
 			// 获取当前边的起点和终点
 			Vector2 p1 = g_corners[j];
@@ -369,7 +373,7 @@ void billiard_logic::updateState()
 			// 如果距离小于等于球的半径，则球与球台壁发生碰撞
 			if (distance_to_edge <= BALL_RADIUS) {
 				DebugMsg("发生球-桌碰撞：\t 碰撞的球与边：%lld -- (%lld, %lld)", i, j, (j + 1) % corner_size);
-				// TODO: 使得球与壁之间距离大于EPS，且速度关于法向量对称
+				// 使得球与壁之间距离大于EPS，且速度关于法向量对称
 				// 计算当前边的法向量
 				Vector2 edge_normal = Vector2(p2.y - p1.y, -(p2.x - p1.x));
 				edge_normal.Normalize();
@@ -380,7 +384,7 @@ void billiard_logic::updateState()
 				// 计算白球到边界的距离修正量
 				double correction_distance = BALL_RADIUS - distance_to_edge + G_EPS;
 
-				// TODO: 将白球沿着碰撞法线方向移动修正距离
+				// 将白球沿着碰撞法线方向移动修正距离
 				g_balls[i].m_position -= correction_direction * correction_distance;
 
 				// 计算入射角度
