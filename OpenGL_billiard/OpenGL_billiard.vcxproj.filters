@@ -30,6 +30,9 @@
     <ClCompile Include="billiard_logic.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="render_utils.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="billiard_logic.h">
@@ -42,6 +45,9 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="Ball.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="render_utils.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

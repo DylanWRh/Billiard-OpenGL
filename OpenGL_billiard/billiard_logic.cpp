@@ -2,6 +2,8 @@
 #include "defs.h"
 #include "Ball.h"
 
+#include "render_utils.h"
+
 #include <chrono>
 #include <stdarg.h>
 #include <stdio.h>
@@ -267,12 +269,14 @@ void billiard_logic::updateState()
 
 	// 判断游戏状态
 	if (!(g_gameLevel == GAME_RUNNING/* || g_gameLevel == GAME_OVER*/)) {
+		DebugMsg("游戏不在运行，无需更新状态");
 		return;
 	}
 
 	// 对局开始后第一次更新游戏状态
 	if (last_time < 0 || last_time > g_worldTime) {
 		last_time = g_worldTime;
+		DebugMsg("游戏第一次更新状态，同步一下世界时间");
 		return;
 	}
 
@@ -280,6 +284,7 @@ void billiard_logic::updateState()
 	g_worldTime = getDeltaTime(program_start_time, GameClock::now());
 	auto delta_t = g_worldTime - last_time;
 	last_time = g_worldTime;
+	DebugMsg("世界时间：%.4llf\t 帧时：%.4llf", g_worldTime, delta_t);
 
 	// TODO: 更新球的位置与速度等信息
 	double delta_v = delta_t * FRAC_0;
@@ -292,7 +297,7 @@ void billiard_logic::updateState()
 			Vector2 dv = (ball.m_velocity / v) * delta_v;
 			ball.m_velocity = ball.m_velocity * (1 - FRAC_1 * delta_t) - dv;
 		}
-		ball.m_position = ball.m_velocity * delta_t;
+		ball.m_position += ball.m_velocity * delta_t;
 	}
 	// collision
 	size_t ball_num = g_balls.size();
@@ -308,6 +313,7 @@ void billiard_logic::updateState()
 			double mid_x = (g_balls[i].m_position.x + g_balls[j].m_position.x) * 0.5;
 			double mid_y = (g_balls[i].m_position.y + g_balls[j].m_position.y) * 0.5;
 			if (dis < 2 * BALL_RADIUS) {
+				DebugMsg("发生球-球碰撞：\t 碰撞的球：(%lld, %lld)", i, j);
 				// https://blog.csdn.net/AWC3297/article/details/128325843
 				if (fabs(dx) > fabs(dy)) {
 					double a = dy / dx;
@@ -338,10 +344,10 @@ void billiard_logic::updateState()
 			}
 		}
 		// TODO: ball-table
-		for (size_t i = 0; i < corner_size; ++i) {
+		for (size_t j = 0; j < corner_size; ++j) {
 			// 获取当前边的起点和终点
-			Vector2 p1 = g_corners[i];
-			Vector2 p2 = g_corners[(i + 1) % corner_size]; // 循环获取下一个顶点作为终点
+			Vector2 p1 = g_corners[j];
+			Vector2 p2 = g_corners[(j + 1) % corner_size]; // 循环获取下一个顶点作为终点
 
 			// 计算当前边的方向向量
 			Vector2 edge_vector = p2 - p1;
@@ -351,6 +357,7 @@ void billiard_logic::updateState()
 
 			// 如果距离小于等于球的半径，则球与球台壁发生碰撞
 			if (distance_to_edge <= BALL_RADIUS) {
+				DebugMsg("发生球-桌碰撞：\t 碰撞的球与边：%lld -- (%lld, %lld)", i, j, (j + 1) % corner_size);
 				// TODO: 使得球与壁之间距离大于EPS，且速度关于法向量对称
 				// 计算当前边的法向量
 				Vector2 edge_normal = Vector2(p2.y - p1.y, -(p2.x - p1.x));
@@ -366,7 +373,7 @@ void billiard_logic::updateState()
 				g_balls[i].m_position -= correction_direction * correction_distance;
 
 				// 计算入射角度
-				double incident_angle = atan2(g_balls[i].m_velocity.y, g_balls[i].m_velocity.x);
+				double incident_angle = 2 * atan2(correction_direction.y, correction_direction.x) - atan2(g_balls[i].m_velocity.y, g_balls[i].m_velocity.x);
 
 				// 计算反射角度
 				constexpr double PI = 3.14159265358979323846; // 圆周率π的数值表示
@@ -396,11 +403,16 @@ void billiard_logic::updateState()
 	// ball-holes
 	std::vector<Ball> temp_balls;
 	for (const auto& ball : g_balls) {
+		bool should_disappear = false;
 		for (const auto& hole : g_holes) {
-			if (ball.m_position.Dist2D(Vector2(hole.x, hole.y)) > hole.z) {
-				temp_balls.push_back(ball);
+			if (ball.m_position.Dist2D(Vector2(hole.x, hole.y)) < hole.z) {
+				DebugMsg("球落入袋口");
+				should_disappear = true;
+				break;
 			}
 		}
+		if (!should_disappear)
+			temp_balls.push_back(ball);
 	}
 	g_balls = temp_balls;
 
@@ -441,6 +453,18 @@ void billiard_logic::shot(const ShotParam& param)
 
 void billiard_logic::display()
 {
+	draw_poly(g_corners.size(), g_corners.data());
+	for (const auto& hole : g_holes) {
+		draw_circle(Vector2(hole.x, hole.y), hole.z, 0.0f, 0.0f, 0.0f);
+	}
+	for (const auto& ball : g_balls) {
+		if (ball.m_type == WHITE) {
+			draw_circle(ball.m_position, BALL_RADIUS, 1.0f, 1.0f, 1.0f);
+		}
+		else {
+			draw_circle(ball.m_position, BALL_RADIUS, 1.0f, 0.0f, 0.0f);
+		}
+	}
 }
 
 #ifdef _DEBUG
@@ -468,10 +492,10 @@ void billiard_logic::test()
 		return;
 	}
 
-	// 输出球的位置
-	for (const auto& ball : g_balls) {
-		DebugMsg("%.3llf\t %.3llf", ball.m_position.x, ball.m_position.y);
-	}
+	// 给白球初速度
+	g_balls[0].m_velocity = Vector2(10, 0.5);
+
+	DebugMsg("初始化游戏成功");
 }
 
 #endif
@@ -520,7 +544,7 @@ static bool polygonEdgesIntersect(const std::vector<Vector2>& corners)
 		// 平行或共线的情况，计算点乘
 		if (abs(cross) < G_EPS) {
 			if (r.Dot2D(s) < 0) {
-				DebugMsg("存在相邻两边之间的夹角过小: %d %d", i, (i + 1));
+				DebugMsg("存在相邻两边之间的夹角过小: %d %d", i, (i + 1) % n);
 				return true;
 			}
 		}

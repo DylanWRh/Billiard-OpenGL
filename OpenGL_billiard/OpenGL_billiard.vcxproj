@@ -143,12 +143,14 @@
     <ClCompile Include="billiard_logic.cpp" />
     <ClCompile Include="glad\src\glad.c" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="render_utils.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Ball.h" />
     <ClInclude Include="billiard_logic.h" />
     <ClInclude Include="defs.h" />
     <ClInclude Include="math_utils.h" />
+    <ClInclude Include="render_utils.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
