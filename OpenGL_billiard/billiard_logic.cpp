@@ -96,6 +96,7 @@ static bool pointInPolygon(const std::vector<Vector2>& corners, const Vector2& p
 static double DistancePointToLine(const Vector2& point, const Vector2& line_start, const Vector2& line_vector);
 static double getDeltaTime(const GameTimePoint& start, const GameTimePoint& end);
 static bool judgeGame();
+static void dropBall(int ball_idx, int hole_idx);
 static std::vector<Vector2> calcTriangleInitPosition(int triangle_length, const Vector2& center, const Vector2& white_to_center_vector);
 /**** decl of helper functions end ****/
 
@@ -412,6 +413,18 @@ void billiard_logic::updateState()
 	}
 	// ball-holes
 	std::vector<Ball> temp_balls;
+	//int ball_index = static_cast<int>(g_balls.size()) - 1;
+	//size_t hole_size = g_holes.size();
+	//for (auto it = g_balls.rbegin(); it != g_balls.rend(); ++it) {
+	//	for (size_t hole_index = 0; hole_index < hole_size; ++hole_index) {
+	//		if (it->m_position.Dist2D(Vector2(g_holes[hole_index].x, g_holes[hole_index].y)) < g_holes[hole_index].z) {
+	//			DebugMsg("球落入袋口");
+	//			dropBall(ball_index, static_cast<int>(hole_index));
+	//			break;
+	//		}
+	//	}
+	//	--ball_index;
+	//}
 	for (const auto& ball : g_balls) {
 		bool should_disappear = false;
 		for (const auto& hole : g_holes) {
@@ -481,11 +494,11 @@ void billiard_logic::display()
 
 void billiard_logic::test()
 {
-	// 初始化正六边形球桌
+	// 初始化正24边形球桌
 	std::vector<Vector2> corners;
 	std::vector<Vector3> holes;
-	for (int i = 0; i < 6; ++i) {
-		constexpr double PI3 = 3.14159265358979323846 / 3; // 圆周率π的数值表示
+	for (int i = 0; i < 24; ++i) {
+		constexpr double PI3 = 3.14159265358979323846 / 12; // 圆周率π的数值表示
 		corners.emplace_back(5 * cos(i * PI3), 5 * sin(i * PI3));
 		holes.emplace_back((5 - G_EPS) * cos(i * PI3), (5 - G_EPS) * sin(i * PI3), 0.25);
 	}
@@ -503,7 +516,7 @@ void billiard_logic::test()
 	}
 
 	// 给白球初速度
-	g_balls[0].m_velocity = Vector2(10, 0.5);
+	g_balls[0].m_velocity = Vector2(10, 0.2);
 
 	DebugMsg("初始化游戏成功");
 }
@@ -658,6 +671,13 @@ bool judgeGame()
 {
 	// TODO
 	return false;
+}
+
+void dropBall(int ball_idx, int hole_idx)
+{
+	// TODO: 可以增加记录球落入哪个袋口的功能。这里直接简单消失
+	// 这里简单删除
+	g_balls.erase(g_balls.begin() + ball_idx);
 }
 
 std::vector<Vector2> calcTriangleInitPosition(int triangle_length, const Vector2& center, const Vector2& white_to_center_vector)
