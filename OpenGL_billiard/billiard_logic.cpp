@@ -494,18 +494,18 @@ void billiard_logic::shot(const ShotParam& param)
 
 void billiard_logic::display()
 {
-	draw_poly(g_corners.size(), g_corners.data());
+	draw_poly(static_cast<int>(g_corners.size()), g_corners.data());
 	for (const auto& hole : g_holes) {
-		draw_circle(Vector2(hole.x, hole.y), hole.z, 0.0f, 0.0f, 0.0f);
+		draw_circle(Vector2(hole.x, hole.y), static_cast<float>(hole.z), 0.0f, 0.0f, 0.0f);
 	}
 	for (const auto& ball : g_balls) {
 		if (ball.m_type == IN_HOLE)
 			continue;
 		if (ball.m_type == WHITE) {
-			draw_circle(ball.m_position, BALL_RADIUS, 1.0f, 1.0f, 1.0f);
+			draw_circle(ball.m_position, static_cast<float>(BALL_RADIUS), 1.0f, 1.0f, 1.0f);
 		}
 		else {
-			draw_circle(ball.m_position, BALL_RADIUS, 1.0f, 0.0f, 0.0f);
+			draw_circle(ball.m_position, static_cast<float>(BALL_RADIUS), 1.0f, 0.0f, 0.0f);
 		}
 	}
 }

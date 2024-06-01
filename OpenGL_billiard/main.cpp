@@ -99,7 +99,7 @@ void myReshape(int w, int h)
 }
 
 
-void
+int
 main(int argc, char** argv)
 {
 	glutInit(&argc, argv);
