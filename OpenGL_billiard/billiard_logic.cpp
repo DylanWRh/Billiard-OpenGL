@@ -284,7 +284,7 @@ void billiard_logic::updateState()
 	g_worldTime = getDeltaTime(program_start_time, GameClock::now());
 	auto delta_t = g_worldTime - last_time;
 	last_time = g_worldTime;
-	DebugMsg("世界时间：%.4llf\t 帧时：%.4llf", g_worldTime, delta_t);
+	DebugMsg("世界时间：%.4llf\t 帧时：%.4llf\t 球正在运动：%d", g_worldTime, delta_t, static_cast<int>(isMoving()));
 
 	// TODO: 更新球的位置与速度等信息
 	double delta_v = delta_t * FRAC_0;

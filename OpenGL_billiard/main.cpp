@@ -7,7 +7,9 @@
 #include <GL/glut.h>
 #endif
 
+#include "defs.h"
 #include "billiard_logic.h"
+#include "math_utils.h"
 
 
 const unsigned int SCR_WIDTH = 800;
@@ -43,6 +45,33 @@ void myinit()
 
 	billiard_logic::test();
 
+#else
+
+	// 初始化正六边形球桌
+	constexpr double OFFSET_HOLES = 0.1;
+	std::vector<Vector2> corners;
+	std::vector<Vector3> holes;
+	for (int i = 0; i < 6; ++i) {
+		constexpr double PI3 = 3.14159265358979323846 / 3; // 圆周率π的数值表示
+		corners.emplace_back(5 * cos(i * PI3), 5 * sin(i * PI3));
+		holes.emplace_back((5 - OFFSET_HOLES) * cos(i * PI3), (5 - OFFSET_HOLES) * sin(i * PI3), 0.25);
+	}
+	if (billiard_logic::initTable(corners, holes) != TABLEINIT_OK) {
+		puts("初始化球桌失败");
+		return;
+	}
+
+	// 初始化摆球位置
+	Vector2 white_position(-3.0, 0.0);
+	Vector2 triangle_center(3.0, 0.0);
+	if (billiard_logic::initBalls(white_position, triangle_center) != BALLSINIT_OK) {
+		puts("初始化球位置失败");
+		return;
+	}
+
+	// 给白球初速度
+	billiard_logic::shot({ 0.1, 10 });
+
 #endif // _DEBUG
 }
 
@@ -55,8 +84,8 @@ void myReshape(int w, int h)
 {
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	gluOrtho2D(-6, 6, -6, 6);///
-	glViewport(-6, -6, 1200, 1200); ///
+	gluOrtho2D(-6, 6, -5, 5);///
+	glViewport(-6, -6, 1200, 1000); ///
 	glMatrixMode(GL_MODELVIEW);
 	glutPostRedisplay();
 }
@@ -67,7 +96,7 @@ main(int argc, char** argv)
 {
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
-	glutInitWindowSize(1200, 1200);
+	glutInitWindowSize(1200, 1000);
 	glutCreateWindow("Sierpinski Gasket by Recursion");
 	glutReshapeFunc(myReshape); //
 	glutDisplayFunc(display);
