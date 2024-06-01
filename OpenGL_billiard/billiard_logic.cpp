@@ -3,6 +3,8 @@
 #include "Ball.h"
 
 #include <chrono>
+#include <stdarg.h>
+#include <stdio.h>
 
 /// <summary>
 /// 首先initTable，设置桌面，然后initBalls，摆球。
@@ -73,6 +75,19 @@ static std::vector<Ball> g_balls;
 
 
 /**** decl of helper functions ****/
+static void ErrorMsg(const char* format, ...) {
+	va_list args;
+	va_start(args, format);
+	vprintf(format, args);
+	va_end(args);
+	putchar('\n');
+}
+#ifdef _DEBUG
+#define DebugMsg(format, ...) ErrorMsg("DEBUG [line %d]: " format, __LINE__, ##__VA_ARGS__)
+#else
+#define DebugMsg(format, ...) ((void)0)
+#endif
+
 static bool polygonEdgesIntersect(const std::vector<Vector2>& corners);
 static bool pointInPolygon(const std::vector<Vector2>& corners, const Vector2& point);
 static double DistancePointToLine(const Vector2& point, const Vector2& line_start, const Vector2& line_vector);
@@ -91,6 +106,7 @@ int billiard_logic::initTable(const std::vector<Vector2>& corners, const std::ve
 	size_t corner_size = corners.size();
 	// 检查是否至少有三个角
 	if (corner_size < 3) {
+		ErrorMsg("TABLEINIT_INVALID_CORNERS: 球桌至少3个角");
 		return TABLEINIT_INVALID_CORNERS;
 	}
 
@@ -99,23 +115,27 @@ int billiard_logic::initTable(const std::vector<Vector2>& corners, const std::ve
 		Vector2 p1 = corners[i];
 		Vector2 q1 = corners[(i + 1) % corner_size];
 		if (p1.Dist2D(q1) < G_EPS) {
+			ErrorMsg("TABLEINIT_INVALID_CORNERS: 存在一条球桌边太短");
 			return TABLEINIT_INVALID_CORNERS;
 		}
 	}
 
 	// 判断多边形边是否相交
 	if (polygonEdgesIntersect(corners)) {
+		ErrorMsg("TABLEINIT_INVALID_CORNERS: 存在球桌边相交");
 		return TABLEINIT_INVALID_CORNERS;
 	}
 
 	// 判断holes的合法性
 	// 检查个数
 	if (holes.size() < 1) {
+		ErrorMsg("TABLEINIT_INVALID_HOLES: 存在一条球桌边太短");
 		return TABLEINIT_INVALID_HOLES;
 	}
 	// 检查是否有比球还小的洞
 	for (const auto& hole : holes) {
 		if (hole.z <= BALL_RADIUS + G_EPS) {
+			ErrorMsg("TABLEINIT_INVALID_HOLES: 存在比球还小的洞");
 			return TABLEINIT_INVALID_HOLES;
 		}
 	}
@@ -135,6 +155,7 @@ int billiard_logic::initTable(const std::vector<Vector2>& corners, const std::ve
 		insideTable = pointInPolygon(corners, Vector2(hole.x, hole.y));
 
 		if (!insideTable) {
+			ErrorMsg("TABLEINIT_INVALID_HOLES: 存在不在球台内的洞");
 			return TABLEINIT_INVALID_HOLES;
 		}
 	}
@@ -145,8 +166,10 @@ int billiard_logic::initTable(const std::vector<Vector2>& corners, const std::ve
 			Vector2 holep1 = Vector2(holes[i].x, holes[i].y);
 			Vector2 holep2 = Vector2(holes[j].x, holes[j].y);
 			double maxdis = holes[i].z + holes[j].z;
-			if ((holep1 - holep2).Length2D() < maxdis)
+			if ((holep1 - holep2).Length2D() < maxdis) {
+				ErrorMsg("TABLEINIT_INVALID_HOLES: 存在有重合部分的球洞");
 				return TABLEINIT_INVALID_HOLES;
+			}
 		}
 	}
 
@@ -191,6 +214,10 @@ int billiard_logic::initBalls(const Vector2& white_position, const Vector2& cent
 	temp_balls.emplace_back(white_position, Vector2(), WHITE);
 
 	// TODO: 计算三角形里每个球的位置，将其加入temp_balls。个数为BALL_TRIANGLE_NUM
+	std::vector<Vector2> ball_positions = calcTriangleInitPosition(BALL_TRIANGLE_NUM, center_of_triangle, center_of_triangle - white_position);
+	for (const auto& pos : ball_positions) {
+		temp_balls.emplace_back(pos, Vector2(), RED);
+	}
 
 	// 判断是否所有球都在球桌内
 	for (const auto& ball : temp_balls) {
@@ -416,28 +443,61 @@ void billiard_logic::display()
 {
 }
 
+#ifdef _DEBUG
+
+void billiard_logic::test()
+{
+	// 初始化正六边形球桌
+	std::vector<Vector2> corners;
+	std::vector<Vector3> holes;
+	for (int i = 0; i < 6; ++i) {
+		constexpr double PI3 = 3.14159265358979323846 / 3; // 圆周率π的数值表示
+		corners.emplace_back(5 * cos(i * PI3), 5 * sin(i * PI3));
+		holes.emplace_back((5 - G_EPS) * cos(i * PI3), (5 - G_EPS) * sin(i * PI3), 0.25);
+	}
+	if (initTable(corners, holes) != TABLEINIT_OK) {
+		ErrorMsg("初始化球桌失败");
+		return;
+	}
+
+	// 初始化摆球位置
+	Vector2 white_position(-3.0, 0.0);
+	Vector2 triangle_center(3.0, 0.0);
+	if (initBalls(white_position, triangle_center) != BALLSINIT_OK) {
+		ErrorMsg("初始化球位置失败");
+		return;
+	}
+
+	// 输出球的位置
+	for (const auto& ball : g_balls) {
+		DebugMsg("%.3llf\t %.3llf", ball.m_position.x, ball.m_position.y);
+	}
+}
+
+#endif
 
 
 /**** def of helper functions ****/
 
-// 检查两条线段是否相交
+// 计算叉积
+static double crossProduct(Vector2 a, Vector2 b) {
+	return a.x * b.y - a.y * b.x;
+}
+// 检查两条线段是否相交，用向量的叉乘判断两线段是否相交
 static bool segmentsIntersect(Vector2 p1, Vector2 q1, Vector2 p2, Vector2 q2)
 {
-	// 用向量的叉乘判断两线段是否相交
-	auto crossProduct = [](Vector2 a, Vector2 b) {
-		return a.x * b.y - a.y * b.x;
-	};
-
 	Vector2 r = q1 - p1;
 	Vector2 s = q2 - p2;
 
 	auto cross = crossProduct(r, s);
 	Vector2 q_minus_p = p2 - p1;
 
-	if (cross == 0) {
+	if (abs(cross) < G_EPS) {
 		// TODO: 平行或共线的情况，计算点乘
-		return r.Dot2D(s) < 0;
-		//return false;
+		//if (r.Dot2D(s) < 0) {
+		//	return abs(crossProduct(q_minus_p, r)) > G_EPS;
+		//}
+		return false;
 	}
 
 	auto t = crossProduct(q_minus_p, s) / cross;
@@ -452,10 +512,38 @@ static bool polygonEdgesIntersect(const std::vector<Vector2>& corners)
 	for (size_t i = 0; i < n; ++i) {
 		Vector2 p1 = corners[i];
 		Vector2 q1 = corners[(i + 1) % n];
+		Vector2 q2 = corners[(i + 2) % n];
+		Vector2 r = q1 - p1;
+		Vector2 s = q2 - q1;
+		auto cross = crossProduct(r, s);
+
+		// 平行或共线的情况，计算点乘
+		if (abs(cross) < G_EPS) {
+			if (r.Dot2D(s) < 0) {
+				DebugMsg("存在相邻两边之间的夹角过小: %d %d", i, (i + 1));
+				return true;
+			}
+		}
 		for (size_t j = i + 2; j < n; ++j) {
+			if ((j + 1) % n == i) {
+				Vector2 q2 = corners[j % n];
+				Vector2 r = p1 - q2;
+				Vector2 s = q1 - p1;
+				auto cross = crossProduct(r, s);
+
+				// 平行或共线的情况，计算点乘
+				if (abs(cross) < G_EPS) {
+					if (r.Dot2D(s) < 0) {
+						DebugMsg("存在相邻两边之间的夹角过小: %d %d", i, j);
+						return true;
+					}
+				}
+				continue;
+			}
 			Vector2 p2 = corners[j];
 			Vector2 q2 = corners[(j + 1) % n];
 			if (segmentsIntersect(p1, q1, p2, q2)) {
+				DebugMsg("存在两边相交: %d %d", i, j);
 				return true;
 			}
 		}
@@ -565,7 +653,7 @@ std::vector<Vector2> calcTriangleInitPosition(int triangle_length, const Vector2
 			res.push_back(start + angle1_vector * (i * BALL_RADIUS_BIGGER * 2));
 			res.push_back(start + angle2_vector * (i * BALL_RADIUS_BIGGER * 2));
 		}
-		start -= vec * (2 * BALL_RADIUS_BIGGER * G_SQRT3);
+		start += vec * (2 * BALL_RADIUS_BIGGER * G_SQRT3);
 	}
 
 	return res;

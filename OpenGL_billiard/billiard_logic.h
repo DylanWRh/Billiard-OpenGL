@@ -58,4 +58,11 @@ namespace billiard_logic {
 	/// 绘制球台的接口。
 	/// </summary>
 	void display();
+
+#ifdef _DEBUG
+	/// <summary>
+	/// 调试模式下定义的测试函数，用于检查函数功能正确性。请在billiard_logic.cpp中定义
+	/// </summary>
+	void test();
+#endif
 }
