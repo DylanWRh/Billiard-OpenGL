@@ -256,7 +256,7 @@ int billiard_logic::initBalls(const Vector2& white_position, const Vector2& cent
 	}
 
 	// TODO: 判断白球与三角形中心的距离是否大于 k * BALL_RADIUS + epsilon， 保证球没有重叠
-	if (g_balls[0].m_position.Dist2D(g_balls[1].m_position) < 2 * BALL_RADIUS + G_EPS) {
+	if (temp_balls[0].m_position.Dist2D(temp_balls[1].m_position) < 2 * BALL_RADIUS + G_EPS) {
 		ErrorMsg("白球与球三角形有重合");
 		return BALLSINIT_INVALID_CENTER;
 	}
