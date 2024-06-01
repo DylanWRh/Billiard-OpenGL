@@ -6,6 +6,7 @@
 #else
 #include <GL/glut.h>
 #endif
+#include <thread>
 
 #include "defs.h"
 #include "billiard_logic.h"
@@ -23,7 +24,14 @@ const unsigned int SCR_HEIGHT = 600;
 void display(void)
 {
 	int i = 0;
-	billiard_logic::updateState();
+	static bool first_run = true;
+	if (first_run) {
+		first_run = false;
+		std::thread([]() {
+			while (true)
+				billiard_logic::updateState();
+			}).detach();
+	}
 
 	glClear(GL_COLOR_BUFFER_BIT);
 

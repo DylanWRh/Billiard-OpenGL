@@ -4,6 +4,7 @@
 
 enum BallType
 {
+	IN_HOLE = -1,
 	WHITE	= 0,
 	BLACK	= 1,
 	RED		= 2
