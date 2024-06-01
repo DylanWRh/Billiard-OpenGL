@@ -78,10 +78,12 @@ static bool pointInPolygon(const std::vector<Vector2>& corners, const Vector2& p
 static double DistancePointToLine(const Vector2& point, const Vector2& line_start, const Vector2& line_vector);
 static double getDeltaTime(const GameTimePoint& start, const GameTimePoint& end);
 static bool judgeGame();
+static std::vector<Vector2> calcTriangleInitPosition(int triangle_length, const Vector2& center, const Vector2& white_to_center_vector);
 /**** decl of helper functions end ****/
 
 
 #define G_EPS 1e-5
+#define G_SQRT3 1.7320508075688772935274463415059
 /**** impl of core functions ****/
 int billiard_logic::initTable(const std::vector<Vector2>& corners, const std::vector<Vector3>& holes)
 {
@@ -534,4 +536,37 @@ bool judgeGame()
 {
 	// TODO
 	return false;
+}
+
+std::vector<Vector2> calcTriangleInitPosition(int triangle_length, const Vector2& center, const Vector2& white_to_center_vector)
+{
+	// 单位化方向向量
+	Vector2 vec = white_to_center_vector / white_to_center_vector.Length2D();
+
+	// 计算第一层起点
+	constexpr double BALL_RADIUS_BIGGER = BALL_RADIUS + G_EPS;
+	Vector2 start = center - vec * (2 * (triangle_length - 1) * BALL_RADIUS_BIGGER / G_SQRT3);
+
+	// 计算入射角度
+	double incident_angle = atan2(vec.y, vec.x);
+
+	// 计算夹角角度
+	constexpr double PI = 3.14159265358979323846; // 圆周率π的数值表示
+	double angle1 = incident_angle + (PI / 6);
+	double angle2 = incident_angle - (PI / 6);
+	Vector2 angle1_vector(cos(angle1), sin(angle1));
+	Vector2 angle2_vector(cos(angle2), sin(angle2));
+
+	// 计算每个角的位置
+	std::vector<Vector2> res;
+	for (int len = triangle_length; len > 0; len -= 2) {
+		res.push_back(start);
+		for (int i = 1; i < len; ++i) {
+			res.push_back(start + angle1_vector * (i * BALL_RADIUS_BIGGER * 2));
+			res.push_back(start + angle2_vector * (i * BALL_RADIUS_BIGGER * 2));
+		}
+		start -= vec * (2 * BALL_RADIUS_BIGGER * G_SQRT3);
+	}
+
+	return res;
 }
