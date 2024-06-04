@@ -1,10 +1,21 @@
 #pragma once
 
-#define TABLEINIT_OK 0
-#define TABLEINIT_INVALID_CORNERS 1
-#define TABLEINIT_INVALID_HOLES 2
+#ifdef __APPLE__
+#include <GLUT/glut.h>
+#else
+#include <GL/glut.h>
+#endif
 
-#define BALLSINIT_OK 0
-#define BALLSINIT_INVALID_WHITE 1
-#define BALLSINIT_INVALID_CENTER 2
-#define BALLSINIT_INVALID_DISTENCE 3
+// 尺寸设置
+constexpr GLdouble HOLE_RADIUS = 0.25;
+constexpr GLdouble HOLE_OFFSET = 0.10;
+constexpr GLdouble BALL_RADIUS = 0.15;
+
+// 操作浮点类型时用到的小量
+constexpr GLdouble G_EPS = 1e-6;
+
+// TODO
+constexpr int BALLSINIT_OK = 0;
+constexpr int BALLSINIT_INVALID_WHITE = 1;
+constexpr int BALLSINIT_INVALID_CENTER = 2;
+constexpr int BALLSINIT_INVALID_DISTENCE = 3;

@@ -27,27 +27,48 @@
     <ClCompile Include="glad\src\glad.c">
       <Filter>Glad</Filter>
     </ClCompile>
-    <ClCompile Include="billiard_logic.cpp">
+    <ClCompile Include="game.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="render_utils.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="Table.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="math_utils.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="utils.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Balls.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="billiard_logic.h">
+    <ClInclude Include="game.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="math_utils.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="defs.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="Ball.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="render_utils.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Table.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="defs.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="utils.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Balls.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
