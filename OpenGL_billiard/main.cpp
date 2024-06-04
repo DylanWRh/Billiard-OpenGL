@@ -59,10 +59,13 @@ void myinit()
 	constexpr double OFFSET_HOLES = 0.1;
 	std::vector<Vector2> corners;
 	std::vector<Vector3> holes;
+	srand(4);
 	for (int i = 0; i < 6; ++i) {
 		constexpr double PI3 = 3.14159265358979323846 / 3; // 圆周率π的数值表示
-		corners.emplace_back(5 * cos(i * PI3), 5 * sin(i * PI3));
-		holes.emplace_back((5 - OFFSET_HOLES) * cos(i * PI3), (5 - OFFSET_HOLES) * sin(i * PI3), 0.25);
+		double r = rand() % 85;
+		r = (r + 15) / 15;
+		corners.emplace_back(r * cos(i * PI3), r * sin(i * PI3));
+		holes.emplace_back((r - OFFSET_HOLES) * cos(i * PI3), (r - OFFSET_HOLES) * sin(i * PI3), 0.25);
 	}
 	if (billiard_logic::initTable(corners, holes) != TABLEINIT_OK) {
 		puts("初始化球桌失败");
@@ -70,15 +73,15 @@ void myinit()
 	}
 
 	// 初始化摆球位置
-	Vector2 white_position(-3.0, 0.0);
-	Vector2 triangle_center(3.0, 0.0);
+	Vector2 white_position(-2.5, 0.0);
+	Vector2 triangle_center(2.5, 0.0);
 	if (billiard_logic::initBalls(white_position, triangle_center) != BALLSINIT_OK) {
 		puts("初始化球位置失败");
 		return;
 	}
 
 	// 给白球初速度
-	billiard_logic::shot({ 0.1, 10 });
+	billiard_logic::shot({ 0.1, 100 });
 
 #endif // _DEBUG
 }

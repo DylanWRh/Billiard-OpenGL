@@ -28,22 +28,22 @@ typedef enum
 	/// <summary>
 	/// 完全没有初始化，球桌都没有。
 	/// </summary>
-	UNINIT = 0,
+	UNINIT			= 0,
 
 	/// <summary>
 	/// 已经有球桌了，还没摆球，也就是球的数量以及物理状态均未初始化。
 	/// </summary>
-	TABLE_INITED = 1,
+	TABLE_INITED	= 1,
 
 	/// <summary>
 	/// 摆好球后，游戏运行中。
 	/// </summary>
-	GAME_RUNNING = 2,
+	GAME_RUNNING	= 2,
 
 	/// <summary>
 	/// 游戏判定为结束，但还未释放。
 	/// </summary>
-	GAME_OVER = 3
+	GAME_OVER		= 3
 } GameLevel;
 
 typedef double GameWorldTime;
