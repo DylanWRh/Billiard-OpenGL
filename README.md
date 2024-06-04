@@ -4,6 +4,11 @@ Term Project for the course **Computer Graphics**, 24 Spring, Peking University.
 
 ## Installation
 
+### Environment
+- Windows
+- Visual Studio 2022
+- OpenGL <link>[GLUT](https://www.opengl.org/resources/libraries/glut/glutdlls37beta.zip)
+
 Pull it, then run it!
 
 ## Source files
@@ -20,7 +25,24 @@ This function should be called first in order to create the polygonal billard ta
 `holes`: A list holding all positions $(x, y)$ and the radius of the holes of the table. `Vector3(x, y, radius)`
 
 - `int billiard_logic::initBalls(const Vector2& white_position, const Vector2& center_of_triangle)`
+
+This function should be called after `initTable` in order to place the balls in the initial positions on the polygonal billard table.
+
 - `void billiard_logic::updateState()`
+
+This function should be called in the display loop first in order to update the state of the game.
+
 - `bool billiard_logic::isMoving()`
+
+This function is called in order to check whether the balls are moving.
+
+The players can't shot until the return is `false`.
+
 - `void billiard_logic::shot(const ShotParam& param)`
+
+Hit the white ball.
+
 - `void billiard_logic::display()`
+
+Render the table and the balls.
+

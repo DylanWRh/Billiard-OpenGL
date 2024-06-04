@@ -101,7 +101,7 @@ static std::vector<Vector2> calcTriangleInitPosition(int triangle_length, const 
 /**** decl of helper functions end ****/
 
 
-#define G_EPS 1e-5
+#define G_EPS 1e-7
 #define G_SQRT3 1.7320508075688772935274463415059
 /**** impl of core functions ****/
 int billiard_logic::initTable(const std::vector<Vector2>& corners, const std::vector<Vector3>& holes)
@@ -217,7 +217,7 @@ int billiard_logic::initBalls(const Vector2& white_position, const Vector2& cent
 	}
 	temp_balls.emplace_back(white_position, Vector2(), WHITE);
 
-	// TODO: 计算三角形里每个球的位置，将其加入temp_balls。个数为BALL_TRIANGLE_NUM
+	// 计算三角形里每个球的位置，将其加入temp_balls。个数为BALL_TRIANGLE_NUM
 	std::vector<Vector2> ball_positions = calcTriangleInitPosition(BALL_TRIANGLE_NUM, center_of_triangle, center_of_triangle - white_position);
 	for (const auto& pos : ball_positions) {
 		temp_balls.emplace_back(pos, Vector2(), RED);
@@ -256,6 +256,10 @@ int billiard_logic::initBalls(const Vector2& white_position, const Vector2& cent
 	}
 
 	// TODO: 判断白球与三角形中心的距离是否大于 k * BALL_RADIUS + epsilon， 保证球没有重叠
+	if (temp_balls[0].m_position.Dist2D(temp_balls[1].m_position) < 2 * BALL_RADIUS + G_EPS) {
+		ErrorMsg("白球与球三角形有重合");
+		return BALLSINIT_INVALID_CENTER;
+	}
 
 	// 所有判断通过
 	g_worldTime = 0.;
@@ -288,12 +292,15 @@ void billiard_logic::updateState()
 	last_time = g_worldTime;
 	DebugMsg("世界时间：%.4llf\t 帧时：%.4llf\t 球正在运动：%d", g_worldTime, delta_t, static_cast<int>(isMoving()));
 
-	// TODO: 更新球的位置与速度等信息
+	// 更新球的位置与速度等信息
 	double delta_v = delta_t * FRAC_0;
 	std::vector<Ball> temp_balls_calcmoving = g_balls;
 	for (auto& ball : temp_balls_calcmoving) {
+		if (ball.m_type == IN_HOLE)
+			continue;
 		double v = ball.m_velocity.Length2D();
 		if (v < delta_v || v < G_EPS) {
+			ball.m_position += (ball.m_velocity * v) / (2 * FRAC_0);
 			ball.m_velocity = Vector2(0.0, 0.0);
 		}
 		else {
@@ -305,6 +312,8 @@ void billiard_logic::updateState()
 	// 判断是否有球飞出界外
 	// TODO: 可以写成直接起飞，也可以尝试实现更细粒度的迭代求解
 	for (const auto& ball : temp_balls_calcmoving) {
+		if (ball.m_type == IN_HOLE)
+			continue;
 		if (!pointInPolygon(g_corners, ball.m_position)) {
 			ErrorMsg("有球飞出去了!");
 		}
@@ -315,9 +324,13 @@ void billiard_logic::updateState()
 	size_t corner_size = g_corners.size();
 	for (size_t i = 0; i < ball_num; ++i)
 	{
+		if (g_balls[i].m_type == IN_HOLE)
+			continue;
 		// ball-ball
 		for (size_t j = i + 1; j < ball_num; ++j)
 		{
+			if (g_balls[j].m_type == IN_HOLE)
+				continue;
 			double dx = g_balls[i].m_position.x - g_balls[j].m_position.x;
 			double dy = g_balls[i].m_position.y - g_balls[j].m_position.y;
 			double dis = sqrt(dx * dx + dy * dy);
@@ -325,6 +338,14 @@ void billiard_logic::updateState()
 			double mid_y = (g_balls[i].m_position.y + g_balls[j].m_position.y) * 0.5;
 			if (dis < 2 * BALL_RADIUS) {
 				DebugMsg("发生球-球碰撞：\t 碰撞的球：(%lld, %lld)", i, j);
+				// TODO: 有时候球与球碰撞时，速度已经被设置成0了，原因是速度本来就很小，经过时间后被上面的速度更新变成0了
+				if (g_balls[i].m_velocity.Length2D() == 0 && g_balls[j].m_velocity.Length2D() == 0) {
+					auto epsv = g_balls[i].m_position - g_balls[j].m_position;
+					epsv.Normalize();
+					g_balls[i].m_velocity = epsv * 1.5 * delta_v;
+					g_balls[j].m_velocity = epsv * -1.5 * delta_v;
+				}
+				
 				// https://blog.csdn.net/AWC3297/article/details/128325843
 				if (fabs(dx) > fabs(dy)) {
 					double a = dy / dx;
@@ -354,7 +375,7 @@ void billiard_logic::updateState()
 				g_balls[j].m_position.y = mid_y - BALL_RADIUS * dy / dis;
 			}
 		}
-		// TODO: ball-table
+		// ball-table
 		for (size_t j = 0; j < corner_size; ++j) {
 			// 获取当前边的起点和终点
 			Vector2 p1 = g_corners[j];
@@ -369,7 +390,7 @@ void billiard_logic::updateState()
 			// 如果距离小于等于球的半径，则球与球台壁发生碰撞
 			if (distance_to_edge <= BALL_RADIUS) {
 				DebugMsg("发生球-桌碰撞：\t 碰撞的球与边：%lld -- (%lld, %lld)", i, j, (j + 1) % corner_size);
-				// TODO: 使得球与壁之间距离大于EPS，且速度关于法向量对称
+				// 使得球与壁之间距离大于EPS，且速度关于法向量对称
 				// 计算当前边的法向量
 				Vector2 edge_normal = Vector2(p2.y - p1.y, -(p2.x - p1.x));
 				edge_normal.Normalize();
@@ -380,7 +401,7 @@ void billiard_logic::updateState()
 				// 计算白球到边界的距离修正量
 				double correction_distance = BALL_RADIUS - distance_to_edge + G_EPS;
 
-				// TODO: 将白球沿着碰撞法线方向移动修正距离
+				// 将白球沿着碰撞法线方向移动修正距离
 				g_balls[i].m_position -= correction_direction * correction_distance;
 
 				// 计算入射角度
@@ -412,7 +433,6 @@ void billiard_logic::updateState()
 		//}
 	}
 	// ball-holes
-	std::vector<Ball> temp_balls;
 	//int ball_index = static_cast<int>(g_balls.size()) - 1;
 	//size_t hole_size = g_holes.size();
 	//for (auto it = g_balls.rbegin(); it != g_balls.rend(); ++it) {
@@ -425,19 +445,17 @@ void billiard_logic::updateState()
 	//	}
 	//	--ball_index;
 	//}
-	for (const auto& ball : g_balls) {
-		bool should_disappear = false;
+	for (auto& ball : g_balls) {
+		if (ball.m_type == IN_HOLE)
+			continue;
 		for (const auto& hole : g_holes) {
 			if (ball.m_position.Dist2D(Vector2(hole.x, hole.y)) < hole.z) {
 				DebugMsg("球落入袋口");
-				should_disappear = true;
+				ball.m_type = IN_HOLE;
 				break;
 			}
 		}
-		if (!should_disappear)
-			temp_balls.push_back(ball);
 	}
-	g_balls = temp_balls;
 
 	// TODO: 判断是否对局结束。条件：有一方获胜
 	if (judgeGame()) {
@@ -476,16 +494,18 @@ void billiard_logic::shot(const ShotParam& param)
 
 void billiard_logic::display()
 {
-	draw_poly(g_corners.size(), g_corners.data());
+	draw_poly(static_cast<int>(g_corners.size()), g_corners.data());
 	for (const auto& hole : g_holes) {
-		draw_circle(Vector2(hole.x, hole.y), hole.z, 0.0f, 0.0f, 0.0f);
+		draw_circle(Vector2(hole.x, hole.y), static_cast<float>(hole.z), 0.0f, 0.0f, 0.0f);
 	}
 	for (const auto& ball : g_balls) {
+		if (ball.m_type == IN_HOLE)
+			continue;
 		if (ball.m_type == WHITE) {
-			draw_circle(ball.m_position, BALL_RADIUS, 1.0f, 1.0f, 1.0f);
+			draw_circle(ball.m_position, static_cast<float>(BALL_RADIUS), 1.0f, 1.0f, 1.0f);
 		}
 		else {
-			draw_circle(ball.m_position, BALL_RADIUS, 1.0f, 0.0f, 0.0f);
+			draw_circle(ball.m_position, static_cast<float>(BALL_RADIUS), 1.0f, 0.0f, 0.0f);
 		}
 	}
 }
@@ -686,7 +706,7 @@ std::vector<Vector2> calcTriangleInitPosition(int triangle_length, const Vector2
 	Vector2 vec = white_to_center_vector / white_to_center_vector.Length2D();
 
 	// 计算第一层起点
-	constexpr double BALL_RADIUS_BIGGER = BALL_RADIUS + G_EPS;
+	constexpr double BALL_RADIUS_BIGGER = BALL_RADIUS + 3e-3;	// 3mm间隙
 	Vector2 start = center - vec * (2 * (triangle_length - 1) * BALL_RADIUS_BIGGER / G_SQRT3);
 
 	// 计算入射角度
