@@ -2,6 +2,19 @@
 
 Term Project for the course **Computer Graphics**, 24 Spring, Peking University.
 
+## Homework requirements
+
+- [ ] 基本要求
+  - [x] 相关球体运动方向是否和用力方向一致
+  - [x] 台球进洞评判
+  - [ ] 击球音效
+  - [ ] 计分是否准确
+- [ ] 模拟效果逼真度
+- [ ] 用户界面友好程度
+- [ ] 项目演示和报告质量
+- [ ] 室内光照效果
+- [ ] 3D 台球（附加分）
+
 ## Installation
 
 ### Environment

@@ -2,18 +2,29 @@
 #include "math_utils.h"
 #include "defs.h"
 
-enum BallType
+class Ball
 {
-    WHITE = 0,
-    BLACK = 1,
-    RED = 2
-};
-
-struct Ball
-{
+public:
+    enum BallType
+    {
+        CUE = 0,        // Ä¸Çò
+        SINGLE_C = 1,   // ´¿É«Çò
+        DOUBLE_C = 2,   // Ë«É«Çò
+        BLACK = 3,      // ºÚÉ«Çò
+    };
+    typedef Vector3 BallColor;
     bool m_inHole;
     Vector2 m_position;
     Vector2 m_velocity;
     BallType m_type;
-    Ball(const Vector2& position, const Vector2& velocity, const BallType& type) : m_position(position), m_velocity(velocity), m_type(type), m_inHole(false) {}
+    BallColor m_color;
+
+    Ball(
+        const Vector2& position, 
+        const Vector2& velocity,
+        const Vector3& color,
+        const BallType& type
+    );
+
+    void render() const;
 };

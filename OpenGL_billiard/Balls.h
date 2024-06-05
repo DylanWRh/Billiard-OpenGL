@@ -13,12 +13,17 @@ public:
 		BALLSINIT_INVALID_DISTENCE = 3,
 	};
 	std::vector<Ball> balls;
+	int cue_pos = -1;
+	int black_pos = -1;
+	int first_hit_pos = -1;
+	std::vector<int> goals{};
 
 	Balls() {};
-	Balls(const Vector2& white_position, const Vector2& center_of_triangle, int triangle_length);
+	Balls(const Vector2& white_position, const Vector2& center_of_triangle);
+	// Balls(const Vector2& white_position, const Vector2& center_of_triangle, int triangle_length);
 	
 	int checkInit(const Table& table);
-	void render();
+	void render() const;
 
 	/// <summary>
 	/// 更新球的速度和位置

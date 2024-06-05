@@ -22,8 +22,6 @@ using GameTimePoint = std::chrono::time_point<GameClock>;
 constexpr int BALL_TRIANGLE_NUM = 5;
 
 static double getDeltaTime(const GameTimePoint& start, const GameTimePoint& end);
-static bool judgeGame();
-static void dropBall(int ball_idx, int hole_idx);
 
 Game::Game(const Table& table_, const Balls& balls_) :
     gameState(UNINIT), worldTime(0.0), last_time(-1.0),
@@ -34,6 +32,8 @@ Game::Game(const Table& table_, const Balls& balls_) :
 }
 
 bool Game::initGame() {
+
+    // 初始化球桌
     int table_state = table.checkInit();
     if (table_state != Table::TABLEINIT_OK) {
         puts("初始化球桌失败");
@@ -41,12 +41,26 @@ bool Game::initGame() {
     }
     gameState = TABLE_INITED;
 
+    // 初始化球
     int balls_state = balls.checkInit(table);
     if (balls_state != Balls::BALLSINIT_OK) {
         puts("初始化球位置失败");
         return false;
     }
+
+    // 初始化游戏状态
     gameState = GAME_RUN_STATIC;
+
+    // Note. 作业要求中已经简化定色步骤
+    // 比赛前直接为双方分配球色
+    player_side[0] = PLAY_SINGLE_C;
+    player_side[1] = PLAY_DOUBLE_C;
+    
+    cur_player = 0;
+    balls.first_hit_pos = balls.cue_pos;
+    balls.goals.clear();
+
+
 
     return true;
 }
@@ -68,7 +82,7 @@ void Game::renderMouse() {
         // 目前白球所在的位置
         Vector2 cue_pos;
         for (const auto& ball : balls.balls) {
-            if (ball.m_type == WHITE) {
+            if (ball.m_type == Ball::CUE) {
                 cue_pos = ball.m_position;
                 break;
             }
@@ -83,7 +97,7 @@ void Game::renderMouse() {
         double min_len = 1e100;
         double orth = 1e100;
         for (const auto& ball : balls.balls) {
-            if (ball.m_type == WHITE || ball.m_inHole) {
+            if (ball.m_type == Ball::CUE || ball.m_inHole) {
                 continue;
             }
             // 白球到目标球的方向
@@ -176,9 +190,16 @@ void Game::renderMouse() {
 }
 
 void Game::updateState() {
-    // 判断游戏状态
-    if (!(gameState == GAME_RUN_STATIC || gameState == GAME_RUN_MOVING || gameState == GAME_RUN_SETTING/* || g_gameLevel == GAME_OVER*/)) {
+    // 如果没有完成初始化，则不更新任何状态
+    if (gameState == UNINIT || gameState == TABLE_INITED) {
         DebugMsg("游戏不在运行，无需更新状态");
+        return;
+    }
+
+    // 如果游戏已经结束，则设置 last_time 为-1
+    if (gameState == GAME_OVER) {
+        DebugMsg("游戏结束");
+        last_time = -1.;
         return;
     }
 
@@ -193,37 +214,45 @@ void Game::updateState() {
     worldTime = getDeltaTime(program_start_time, GameClock::now());
     auto delta_t = worldTime - last_time;
     last_time = worldTime;
-    DebugMsg("世界时间：%.4llf\t 帧时：%.4llf\t 球正在运动：%d", worldTime, delta_t, static_cast<int>(isMoving()));
+    DebugMsg("世界时间：%.4llf\t 帧时：%.4llf\t 球正在运动：%d", worldTime, delta_t, 
+        static_cast<int>(gameState == GAME_RUN_MOVING));
     
-    // 更新球的速度和位置
-    if (gameState != GAME_RUN_SETTING) {
+    // 如果游戏正常运行，更新球的速度和位置
+    // 并更新状态，场上是否有球在移动
+    if (gameState == GAME_RUN_MOVING || gameState == GAME_RUN_STATIC) {
         bool ballsUpd = balls.update(table, delta_t);
+        // 球还在运动
         if (ballsUpd) {
             gameState = GAME_RUN_MOVING;
         }
+        // 球停止运动但状态是MOVING
+        // 说明一杆结束，需要进行判定
+        else if (gameState == GAME_RUN_MOVING) {
+            gameState = GAME_JUDGING;
+        }
+        // 否则表示未出杆不需要JUDGE
         else {
             gameState = GAME_RUN_STATIC;
         }
     }
 
-    // 白球掉袋，进行自由球摆放
-    if (gameState == GAME_RUN_STATIC) {
-        for (auto& ball : balls.balls) {
-            if (ball.m_type == WHITE && ball.m_inHole) {
-                gameState = GAME_RUN_SETTING;
-                break;
-            }
+    //// 如果在正常运行后，白球掉袋，则进行自由球摆放
+    //if (gameState == GAME_RUN_STATIC) {
+    //    // 在构造Balls的过程中，母球被置于balls[cue_pos]处
+    //    if (balls.balls[balls.cue_pos].m_inHole) {
+    //        gameState = GAME_RUN_SETTING;
+    //        // 不能返回，因为如果白球掉袋后游戏结束了
+    //        // 那么无需摆放自由球
+    //    }
+    //}
+    
+    // 当前击球结束后，更新玩家状态，并判断游戏是否结束
+    if (gameState == GAME_JUDGING) {
+        winner = judge();
+        if (winner) {
+            gameState = GAME_OVER;
         }
     }
-    
-
-    if (judgeGame()) {
-        gameState = GAME_OVER;
-    }
-
-    // 如果游戏结束，设置 last_time 为-1
-    if (gameState == GAME_OVER)
-        last_time = -1.;
 }
 
 void Game::mouse_click() {
@@ -232,7 +261,7 @@ void Game::mouse_click() {
     }
     if (gameState == GAME_RUN_STATIC) {
         for (auto& ball : balls.balls) {
-            if (ball.m_type == WHITE) {
+            if (ball.m_type == Ball::CUE) {
                 ball.m_velocity = (mouse_pos - ball.m_position) * 4;
                 return;
             }
@@ -246,37 +275,165 @@ void Game::mouse_click() {
         }
         // 母球位置与其他球相交
         for (auto& ball : balls.balls) {
-            if (!ball.m_inHole && (ball.m_position - mouse_pos).Length2D() < 2 * BALL_RADIUS + G_EPS) {
+            if ((!ball.m_inHole) && (ball.m_type != Ball::CUE)
+                && ((ball.m_position - mouse_pos).Length2D() < 2 * BALL_RADIUS + G_EPS)) {
                 return;
             }
         }
         // 放置母球
-        for (auto& ball : balls.balls) {
-            if (ball.m_type == WHITE && ball.m_inHole) {
-                ball.m_inHole = false;
-                ball.m_position = mouse_pos;
-                ball.m_velocity = Vector2(0, 0);
-                gameState = GAME_RUN_MOVING;
-                return;
+        balls.balls[balls.cue_pos].m_inHole = false;
+        balls.balls[balls.cue_pos].m_position = mouse_pos;
+        balls.balls[balls.cue_pos].m_velocity = Vector2(0, 0);
+        gameState = GAME_RUN_STATIC;
+        return;
+    }
+}
+
+
+int Game::judge() {
+    // Note. 作业要求中已经简化定色步骤
+    // 比赛前直接为双方分配球色，故函数中不写定色代码
+
+    // Step 1. 检查当前玩家是否所有球已经清除
+    bool cur_player_clear = true;
+    // 1.1. 已经定色的情况
+    if (player_side[cur_player] != UNDEF) {
+        Ball::BallType target_balltype = Ball::CUE;
+        if (player_side[cur_player] == PLAY_SINGLE_C) {
+            target_balltype = Ball::SINGLE_C;
+        }
+        else if (player_side[cur_player] == PLAY_DOUBLE_C) {
+            target_balltype = Ball::DOUBLE_C;
+        }
+
+        for (const auto& ball : balls.balls) {
+            // 存在目标类型未进袋
+            if (ball.m_type == target_balltype && !ball.m_inHole) {
+                cur_player_clear = false;
+                break;
             }
         }
     }
+    // 1.2 未定色，除白球和黑球都以进袋时认为已经清除
+    else if (player_side[cur_player] == UNDEF) {
+        for (const auto& ball : balls.balls) {
+            if (!(ball.m_type == Ball::CUE || ball.m_type == Ball::BLACK)) {
+                if (!ball.m_inHole) {
+                    cur_player_clear = false;
+                }
+            }
+        }
+    }
+
+    // Step 2. 检查游戏是否结束
+    // 黑球未入袋则未结束，否则已结束
+    if (balls.balls[balls.black_pos].m_inHole) {
+        // 重置出杆后状态
+        balls.first_hit_pos = balls.cue_pos;
+        balls.goals.clear();
+
+        // 白球进袋，则当前玩家输掉比赛
+        if (balls.balls[balls.cue_pos].m_inHole) {
+            // 设置游戏结束并返回赢家
+            gameState = GAME_OVER;
+            return 2 - cur_player;
+        }
+
+        // 当前玩家已经清除其他彩球，赢得比赛
+        if (cur_player_clear) {
+            gameState = GAME_OVER;
+            return 1 + cur_player;
+        }
+        else {
+            gameState = GAME_OVER;
+            return 2 - cur_player;
+        }
+
+    }
+
+    // Step 3. 游戏未结束，检查玩家是否犯规
+    // 3.1. 白球进袋犯规或未打到球，对手获得自由球
+    if (balls.balls[balls.cue_pos].m_inHole || balls.first_hit_pos == balls.cue_pos) {
+        // 重置出杆后状态
+        balls.first_hit_pos = balls.cue_pos;
+        balls.goals.clear();
+        // 设置自由球，交换球权
+        gameState = GAME_RUN_SETTING;
+        cur_player = 1 - cur_player;
+        return 0;
+    }
+    // 3.2. 若已定色，未击打己方颜色球，犯规，对手获得自由球
+    if (player_side[cur_player] != UNDEF) {
+        Ball::BallType target_balltype = Ball::CUE;
+        if (player_side[cur_player] == PLAY_SINGLE_C) {
+            target_balltype = Ball::SINGLE_C;
+        }
+        else if (player_side[cur_player] == PLAY_DOUBLE_C) {
+            target_balltype = Ball::DOUBLE_C;
+        }
+
+        // 没有打到自己颜色的球
+        if (target_balltype != balls.balls[balls.first_hit_pos].m_type) {
+            // 也不是已经清除彩球，击打黑球的情况
+            if (!(cur_player_clear && balls.balls[balls.first_hit_pos].m_type == Ball::BLACK)) {
+                // 重置出杆后状态
+                balls.first_hit_pos = balls.cue_pos;
+                balls.goals.clear();
+                // 设置自由球，交换球权
+                gameState = GAME_RUN_SETTING;
+                cur_player = 1 - cur_player;
+                return 0;
+            }
+        }
+    }
+
+    // Step 4. 未犯规，检查是否交换球权
+    // 4.1. 若未定色且未犯规
+    if (player_side[cur_player] == UNDEF) {
+        // Note. 由于作业要求中已经提早定色
+        // 因此未定色的代码并没有写
+    }
+    else {
+        Ball::BallType target_balltype = Ball::CUE;
+        if (player_side[cur_player] == PLAY_SINGLE_C) {
+            target_balltype = Ball::SINGLE_C;
+        }
+        else if (player_side[cur_player] == PLAY_DOUBLE_C) {
+            target_balltype = Ball::DOUBLE_C;
+        }
+        bool exchange = true;   // 是否交换球权
+        // 遍历当前出杆后所有进球
+        for (const auto& goal : balls.goals) {
+            // 存在一个自己的球进了
+            if (balls.balls[goal].m_type == target_balltype) {
+                exchange = false;
+                break;
+            }
+        }
+        // 交换球权
+        if (exchange) {
+            cur_player = 1 - cur_player;
+        }
+        // 重置出杆后状态
+        balls.first_hit_pos = balls.cue_pos;
+        balls.goals.clear();
+        gameState = GAME_RUN_STATIC;
+        return 0;
+    }
+
+    // 重置出杆后状态
+    balls.first_hit_pos = balls.cue_pos;
+    balls.goals.clear();
+    gameState = GAME_RUN_STATIC;
+
+    return 0;
 }
 
 double getDeltaTime(const GameTimePoint& start, const GameTimePoint& end)
 {
     // 计算时间差
     std::chrono::duration<double> duration = end - start;
-
     // 使用 duration_cast 将时间段转换为以秒为单位的 double 类型
     double time_diff = std::chrono::duration_cast<std::chrono::duration<double>>(duration).count();
-
     return time_diff;
-}
-
-// 判断游戏是否已经结束
-bool judgeGame()
-{
-    // TODO
-    return false;
 }

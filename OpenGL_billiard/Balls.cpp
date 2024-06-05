@@ -8,17 +8,68 @@ constexpr double FRAC_0 = 1;
 constexpr double FRAC_1 = 0.25;
 static std::vector<Vector2> calcTriangleInitPosition(int triangle_length, const Vector2& center, const Vector2& white_to_center_vector);
 
-Balls::Balls(const Vector2& white_position, const Vector2& center_of_triangle, int triangle_length) {
+
+Balls::Balls(const Vector2& white_position, const Vector2& center_of_triangle) {
     
     balls.clear();
+
+    // 8球比赛所需的球：1 颗主球（白色），1-15 号共 15 颗目标球，
+    // 其中 1-7 号全色球，8 号为黑色球，9 - 15 号为花色球。
+
+    // 定义球的颜色
+    const std::vector<Ball::BallColor> color_map = {
+        {1.0f, 1.0f, 0.0f},     // yellow
+        {0.0f, 0.0f, 1.0f},     // blue
+        {1.0f, 0.0f, 0.0f},     // red
+        {0.502f, 0.0f, 0.502f}, // purple
+        {1.0f, 0.647f, 0.0f},   // orange
+        {0.0f, 0.502f, 0.0f},   // green
+        {0.502f, 0.0f, 0.0f},   // maroon
+    };
     
-    // 添加白球
-    balls.emplace_back(white_position, Vector2(), WHITE);
+    // 添加白球和白球索引
+    balls.emplace_back(white_position, Vector2(), Ball::BallColor(1, 1, 1), Ball::CUE);
+    cue_pos = 0; first_hit_pos = cue_pos; goals.clear();
     
     // 添加彩球
-    std::vector<Vector2> ball_positions = calcTriangleInitPosition(triangle_length, center_of_triangle, center_of_triangle - white_position);
-    for (const auto& pos : ball_positions) {
-        balls.emplace_back(pos, Vector2(), RED);
+    // 规则(1) 开球前目标球排列成三角形，共5排，每排球数分别为1-5颗，
+    const int n_row = 5;
+    std::vector<Vector2> ball_positions = calcTriangleInitPosition(
+        n_row, center_of_triangle, center_of_triangle - white_position);
+    // 单色球
+    for (int i = 0; i < 7; ++i) {
+        balls.emplace_back(ball_positions[i], Vector2(), color_map[i], Ball::SINGLE_C);
+    }
+    // 黑球
+    balls.emplace_back(ball_positions[7], Vector2(), Ball::BallColor(0, 0, 0), Ball::BLACK);
+    black_pos = 8;
+    // 双色球
+    for (int j = 8; j < 15; ++j) {
+        balls.emplace_back(ball_positions[j], Vector2(), color_map[size_t(j - 8)], Ball::DOUBLE_C);
+    }
+
+    // 规则(2) 第一排的一颗球置于“置球点”，8 号球位于第三排的中间位置。
+    
+    auto swap_pos = [](Ball& b1, Ball& b2) {
+        Vector2 temp = b1.m_position;
+        b1.m_position = b2.m_position;
+        b2.m_position = temp;
+    };
+    swap_pos(balls[black_pos], balls[10]);
+
+    // 规则(3) 三角底边两端分别放置一颗不同球组的球。
+    // 把1号放在其中一个角，15号放在另一个角
+    // 其实应该用索引+随机更合适，这里只是暂时简化
+    
+    swap_pos(balls[1], balls[10]);
+    swap_pos(balls[15], balls[9]);
+
+    // 规则(4) 其他目标球全色和花色间隔开，随意摆放，但必须彼此贴紧
+    // 随机打乱彩球，1号、15号和8号固定不动
+    for (int i = 0; i < 7; ++i) {
+        int aa = getRandomIntWithoutC(2, 14, 8);
+        int bb = getRandomIntWithoutC(2, 14, 8);
+        swap_pos(balls[aa], balls[bb]);
     }
 }
 
@@ -64,16 +115,9 @@ int Balls::checkInit(const Table& table) {
     return BALLSINIT_OK;
 }
 
-void Balls::render() {
+void Balls::render() const {
     for (const auto& ball : balls) {
-        if (ball.m_inHole)
-            continue;
-        if (ball.m_type == WHITE) {
-            draw_circle(ball.m_position, static_cast<float>(BALL_RADIUS), 1.0f, 1.0f, 1.0f);
-        }
-        else {
-            draw_circle(ball.m_position, static_cast<float>(BALL_RADIUS), 1.0f, 0.0f, 0.0f);
-        }
+        ball.render();
     }
 }
 
@@ -111,7 +155,7 @@ bool Balls::update(const Table& table, double delta_t) {
         }
     }
     balls = temp_balls_calcmoving;
-    // collision
+    // 碰撞
     size_t ball_num = balls.size();
     size_t corner_size = table.corners.size();
     for (size_t i = 0; i < ball_num; ++i)
@@ -130,6 +174,12 @@ bool Balls::update(const Table& table, double delta_t) {
             double mid_y = (balls[i].m_position.y + balls[j].m_position.y) * 0.5;
             if (dis < 2 * BALL_RADIUS) {
                 DebugMsg("发生球-球碰撞：\t 碰撞的球：(%lld, %lld)", i, j);
+                // 设置第一个被母球碰到的球的信息
+                if (first_hit_pos == cue_pos) {
+                    if (i == cue_pos) { first_hit_pos = j; }
+                    else if (j == cue_pos) { first_hit_pos = i; }
+                }
+                
                 // TODO: 有时候球与球碰撞时，速度已经被设置成0了，原因是速度本来就很小，经过时间后被上面的速度更新变成0了
                 if (balls[i].m_velocity.Length2D() == 0 && balls[j].m_velocity.Length2D() == 0) {
                     auto epsv = balls[i].m_position - balls[j].m_position;
@@ -209,13 +259,14 @@ bool Balls::update(const Table& table, double delta_t) {
         }
     }
 
-    for (auto& ball : balls) {
-        if (ball.m_inHole)
+    for (int i = 0; i < balls.size(); ++i) {
+        if (balls[i].m_inHole)
             continue;
         for (const auto& hole : table.holes) {
-            if (ball.m_position.Dist2D(Vector2(hole.x, hole.y)) < HOLE_RADIUS) {
+            if (balls[i].m_position.Dist2D(Vector2(hole.x, hole.y)) < HOLE_RADIUS) {
                 DebugMsg("球落入袋口");
-                ball.m_inHole = true;
+                balls[i].m_inHole = true;
+                goals.push_back(i);
                 break;
             }
         }

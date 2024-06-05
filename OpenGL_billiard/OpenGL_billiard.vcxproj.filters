@@ -45,6 +45,9 @@
     <ClCompile Include="Balls.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="Ball.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="game.h">

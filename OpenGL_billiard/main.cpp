@@ -13,10 +13,38 @@
 #include "defs.h"
 #include "game.h"
 #include "math_utils.h"
+#include "render_utils.h"
 
 
 static Game g;
 
+void renderStrokeString(float x, float y, float scale, const char* string);
+
+void renderBoldStrokeString(float x, float y, float scale, const char* string, float boldness = 1.0f) {
+    const char* c;
+    glPushMatrix();
+    glTranslatef(x, y, 0);
+    glScalef(scale, scale, scale);
+
+    for (float dx = -boldness; dx <= boldness; dx += boldness / 10) {
+        for (float dy = -boldness; dy <= boldness; dy += boldness / 10) {
+            if (dx != 0.0f || dy != 0.0f) {
+                glPushMatrix();
+                glTranslatef(dx, dy, 0);
+                for (c = string; *c != '\0'; c++) {
+                    glutStrokeCharacter(GLUT_STROKE_ROMAN, *c);
+                }
+                glPopMatrix();
+            }
+        }
+    }
+
+    for (c = string; *c != '\0'; c++) {
+        glutStrokeCharacter(GLUT_STROKE_ROMAN, *c);
+    }
+
+    glPopMatrix();
+}
 
 void display(void)
 {
@@ -34,7 +62,45 @@ void display(void)
     
     g.render();
 
+    // 显示当前玩家以及应该击打的球
+    glColor3f(0.0, 0.0, 0.0);  
+    if (g.cur_player == 0) {
+        renderBoldStrokeString(-5.5f, 3.9f, 0.005f, "Player 1", 3.0);
+        draw_circle(Vector2(5, 4), 0.5, 1.0, 0.0, 0.0);
+    }
+    else {
+        renderBoldStrokeString(-5.5f, 3.9f, 0.005f, "Player 2", 3.0);
+        draw_circle(Vector2(5, 4), 0.5, 1.0, 0.0, 0.0);
+        draw_circle(Vector2(5, 4), 0.25, 1.0, 1.0, 1.0);
+    }
+
+    // 游戏结束
+    
+    if (g.gameState == Game::GAME_OVER) {
+        glColor3f(1.0, 0.0, 0.0);
+        renderBoldStrokeString(-4.0f, 0.0f, 0.01f, "GAME OVER", 3.0);
+        if (g.winner == 1) {
+            renderBoldStrokeString(-2.0f, -1.0f, 0.004f, "Player 1 Wins", 3.0);
+        }
+        else if (g.winner == 2) {
+            renderBoldStrokeString(-2.0f, -1.0f, 0.004f, "Player 2 Wins", 3.0);
+        }
+    }
+    
+    
+
     glutSwapBuffers();
+}
+
+void renderStrokeString(float x, float y, float scale, const char* string) {
+    const char* c;
+    glPushMatrix();
+    glTranslatef(x, y, 0);
+    glScalef(scale, scale, scale);
+    for (c = string; *c != '\0'; c++) {
+        glutStrokeCharacter(GLUT_STROKE_ROMAN, *c);
+    }
+    glPopMatrix();
 }
 
 void myinit()
@@ -52,7 +118,7 @@ void myinit()
     // 初始化所有球摆球
     Vector2 white_position(-2, 0.0);
     Vector2 triangle_center(2, 0.0);
-    Balls balls(white_position, triangle_center, 5);
+    Balls balls(white_position, triangle_center);
     
     // 初始化游戏
     g = Game(table, balls);

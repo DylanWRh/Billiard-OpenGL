@@ -9,6 +9,9 @@
 
 GLdouble getRandomDouble(GLdouble a, GLdouble b);
 
+int getRandomInt(int a, int b);
+int getRandomIntWithoutC(int a, int b, int c);
+
 void ErrorMsg(const char* format, ...);
 #ifdef _DEBUG
 #define DebugMsg(format, ...) ErrorMsg("DEBUG [line %d]: " format, __LINE__, ##__VA_ARGS__)
