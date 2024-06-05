@@ -220,7 +220,10 @@ void Game::updateState() {
     // 如果游戏正常运行，更新球的速度和位置
     // 并更新状态，场上是否有球在移动
     if (gameState == GAME_RUN_MOVING || gameState == GAME_RUN_STATIC) {
-        bool ballsUpd = balls.update(table, delta_t);
+        for (int i = 0; i < 49; ++i) {
+            balls.update(table, delta_t / 50);
+        }
+        bool ballsUpd = balls.update(table, delta_t / 50);
         // 球还在运动
         if (ballsUpd) {
             gameState = GAME_RUN_MOVING;
