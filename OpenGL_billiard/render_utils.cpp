@@ -155,6 +155,14 @@ void draw_poly(int num, const Vector2* const vex)
 
 }
 
+void renderBitmapString(float x, float y, void* font, const char* string) {
+    const char* c;
+    glRasterPos2f(x, y); // Set the position for the text
+    for (c = string; *c != '\0'; c++) {
+        glutBitmapCharacter(font, *c); // Render each character
+    }
+}
+
 void renderBoldStrokeString(float x, float y, float scale, const char* string, float boldness) {
     const char* c;
     glPushMatrix();

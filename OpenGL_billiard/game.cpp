@@ -167,7 +167,7 @@ void Game::renderMouse() {
         glColor4f(1.0, 1.0, 1.0, 0.5);
         // 设置位置
         glPushMatrix(); // 保存当前矩阵状态
-        glTranslatef(render_pos.x, Y_BALL, render_pos.y);
+        glTranslatef((float)render_pos.x, Y_BALL, (float)render_pos.y);
         // 绘制较为透明的球
         glutSolidSphere(BALL_RADIUS, 50, 50);
         glPopMatrix(); // 恢复之前保存的矩阵状态
@@ -200,8 +200,7 @@ void Game::renderMouse() {
         );
         glEnd();
 
-        // 启用光照
-        glEnable(GL_LIGHTING);
+        glDisable(GL_BLEND);
 
         /*
         以下是原先的2D版本
@@ -244,13 +243,12 @@ void Game::renderMouse() {
         glColor4f(1.0, 1.0, 1.0, 0.5);
         // 设置位置
         glPushMatrix(); // 保存当前矩阵状态
-        glTranslatef(mouse_pos.x, Y_BALL, mouse_pos.y);
+        glTranslatef((float)mouse_pos.x, Y_BALL, (float)mouse_pos.y);
         // 绘制较为透明的球
         glutSolidSphere(BALL_RADIUS, 50, 50);
         glPopMatrix(); // 恢复之前保存的矩阵状态
 
-        // 启用光照
-        glEnable(GL_LIGHTING);
+        glDisable(GL_BLEND);
 
         /*
         以下是原先的2D版本

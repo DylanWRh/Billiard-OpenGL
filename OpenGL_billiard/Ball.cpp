@@ -54,10 +54,10 @@ void Ball::render() const{
 
 		// 设置面的颜色
 		if (iswhite) {
-			GLfloat mat_ambient[] = { 0.7, 0.7, 0.7, 1.0 };
-			GLfloat mat_diffuse[] = { 0.7, 0.7, 0.7, 1.0 };
-			GLfloat mat_specular[] = { 1.0, 1.0, 1.0, 1.0 };
-			GLfloat high_shininess[] = { 35.0 };
+			GLfloat mat_ambient[] = { 0.7f, 0.7f, 0.7f, 1.0f };
+			GLfloat mat_diffuse[] = { 0.7f, 0.7f, 0.7f, 1.0f };
+			GLfloat mat_specular[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+			GLfloat high_shininess[] = { 35.0f };
 
 			glMaterialfv(GL_FRONT, GL_AMBIENT, mat_ambient);
 			glMaterialfv(GL_FRONT, GL_DIFFUSE, mat_diffuse);
@@ -65,10 +65,10 @@ void Ball::render() const{
 			glMaterialfv(GL_FRONT, GL_SHININESS, high_shininess);
 		}
 		else {
-			GLfloat mat_ambient[] = { m_color.x * 0.7, m_color.y * 0.7, m_color.z * 0.7, 0.8 };
-			GLfloat mat_diffuse[] = { m_color.x * 0.7, m_color.y * 0.7, m_color.z * 0.7, 0.8 };
-			GLfloat mat_specular[] = { 1.0, 1.0, 1.0, 0.8 };
-			GLfloat high_shininess[] = { 50.0 };
+			GLfloat mat_ambient[] = { (float)m_color.x * 0.7f, (float)m_color.y * 0.7f, (float)m_color.z * 0.7f, 0.8f };
+			GLfloat mat_diffuse[] = { (float)m_color.x * 0.7f, (float)m_color.y * 0.7f, (float)m_color.z * 0.7f, 0.8f };
+			GLfloat mat_specular[] = { 1.0f, 1.0f, 1.0f, 0.8f };
+			GLfloat high_shininess[] = { 50.0f };
 
 			glMaterialfv(GL_FRONT, GL_AMBIENT, mat_ambient);
 			glMaterialfv(GL_FRONT, GL_DIFFUSE, mat_diffuse);
@@ -80,13 +80,13 @@ void Ball::render() const{
 		glBegin(GL_TRIANGLES);
 		for (int idx : face) {
 			glNormal3f(
-				sphere.vertexNormals[idx].x, 
-				sphere.vertexNormals[idx].y, 
-				sphere.vertexNormals[idx].z);
+				(float)sphere.vertexNormals[idx].x,
+				(float)sphere.vertexNormals[idx].y,
+				(float)sphere.vertexNormals[idx].z);
 			glVertex3f(
-				sphere.vertices[idx].x * BALL_RADIUS + m_position.x,
-				sphere.vertices[idx].y * BALL_RADIUS + Y_BALL,
-				sphere.vertices[idx].z * BALL_RADIUS + m_position.y);
+				(float)(sphere.vertices[idx].x * BALL_RADIUS + m_position.x),
+				(float)(sphere.vertices[idx].y * BALL_RADIUS + Y_BALL),
+				(float)(sphere.vertices[idx].z * BALL_RADIUS + m_position.y));
 		}
 		glEnd();
 	}

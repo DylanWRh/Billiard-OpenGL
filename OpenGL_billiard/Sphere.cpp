@@ -26,7 +26,7 @@ Vector3 Sphere::midpoint(const Vector3& p1, const Vector3& p2) const {
 }
 
 void Sphere::normalize(Vector3& p) const {
-    GLfloat length = std::sqrt(p[0] * p[0] + p[1] * p[1] + p[2] * p[2]);
+    GLfloat length = (float)std::sqrt(p[0] * p[0] + p[1] * p[1] + p[2] * p[2]);
     p[0] /= length;
     p[1] /= length;
     p[2] /= length;
@@ -56,21 +56,21 @@ void Sphere::subdivide(int level) {
 
             int m01 = midpoints[edge_key(v0, v1)];
             if (m01 == 0) {
-                m01 = vertices.size();
+                m01 = (int)vertices.size();
                 midpoints[edge_key(v0, v1)] = m01;
                 vertices.push_back(midpoint(vertices[v0], vertices[v1]));
             }
 
             int m12 = midpoints[edge_key(v1, v2)];
             if (m12 == 0) {
-                m12 = vertices.size();
+                m12 = (int)vertices.size();
                 midpoints[edge_key(v1, v2)] = m12;
                 vertices.push_back(midpoint(vertices[v1], vertices[v2]));
             }
 
             int m20 = midpoints[edge_key(v2, v0)];
             if (m20 == 0) {
-                m20 = vertices.size();
+                m20 = (int)vertices.size();
                 midpoints[edge_key(v2, v0)] = m20;
                 vertices.push_back(midpoint(vertices[v2], vertices[v0]));
             }

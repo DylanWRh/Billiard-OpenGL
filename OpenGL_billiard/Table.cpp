@@ -120,38 +120,89 @@ void Table::render() {
     glColor3f(0, 1.0, 0);       // 绿色
     glBegin(GL_TRIANGLES);
     for (int i = 0; i < n_corners; ++i) {
-        glVertex3f(1.1 * corners[i].x, Y_PLANE, 1.1 * corners[i].y);
-        glVertex3f(1.1 * corners[(i + 1) % n_corners].x, Y_PLANE, 1.1 * corners[(i + 1) % n_corners].y);
+        glVertex3f(
+            1.1f * (float)corners[i].x, 
+            Y_PLANE, 
+            1.1f * (float)corners[i].y
+        );
+        glVertex3f(
+            1.1f * (float)corners[(i + 1) % n_corners].x, 
+            Y_PLANE, 
+            1.1f * (float)corners[(i + 1) % n_corners].y
+        );
         glVertex3f(0.0f, Y_PLANE, 0.0f);
     }
     glEnd();
 
     // 绘制库边
-    glColor3f(0.4, 0.2, 0);    // 外围深褐色
+    glColor3f(0.4f, 0.2f, 0.0f);    // 外围深褐色
     glBegin(GL_QUADS);
     for (int i = 0; i < n_corners; ++i) {
-        glVertex3f(1.1 * corners[i].x, Y_CUSHION, 1.1 * corners[i].y);
-        glVertex3f(1.1 * corners[(i + 1) % n_corners].x, Y_CUSHION, 1.1 * corners[(i + 1) % n_corners].y);
-        glVertex3f(1.2 * corners[(i + 1) % n_corners].x, Y_CUSHION, 1.2 * corners[(i + 1) % n_corners].y);
-        glVertex3f(1.2 * corners[i].x, Y_CUSHION, 1.2 * corners[i].y);
+        glVertex3f(
+            1.1f * (float)corners[i].x,
+            Y_CUSHION, 
+            1.1f * (float)corners[i].y
+        );
+        glVertex3f(
+            1.1f * (float)corners[(i + 1) % n_corners].x,
+            Y_CUSHION, 
+            1.1f * (float)corners[(i + 1) % n_corners].y
+        );
+        glVertex3f(
+            1.2f * (float)corners[(i + 1) % n_corners].x,
+            Y_CUSHION, 
+            1.2f * (float)corners[(i + 1) % n_corners].y
+        );
+        glVertex3f(
+            1.2f * (float)corners[i].x,
+            Y_CUSHION, 
+            1.2f * (float)corners[i].y
+        );
     }
     glEnd();
     glColor3f(0, 0.5, 0);       // 内圈墨绿色
     glBegin(GL_QUADS);
     for (int i = 0; i < n_corners; ++i) {
-        glVertex3f(1.1 * corners[i].x, Y_CUSHION, 1.1 * corners[i].y);
-        glVertex3f(1.1 * corners[(i + 1) % n_corners].x, Y_CUSHION, 1.1 * corners[(i + 1) % n_corners].y);
-        glVertex3f(1.0 * corners[(i + 1) % n_corners].x, Y_CUSHION, 1.0 * corners[(i + 1) % n_corners].y);
-        glVertex3f(1.0 * corners[i].x, Y_CUSHION, 1.0 * corners[i].y);
+        glVertex3f(
+            1.1f * (float)corners[i].x, 
+            Y_CUSHION, 
+            1.1f * (float)corners[i].y
+        );
+        glVertex3f(
+            1.1f * (float)corners[(i + 1) % n_corners].x,
+            Y_CUSHION, 
+            1.1f * (float)corners[(i + 1) % n_corners].y
+        );
+        glVertex3f(
+            1.0f * (float)corners[(i + 1) % n_corners].x,
+            Y_CUSHION, 
+            1.0f * (float)corners[(i + 1) % n_corners].y);
+        glVertex3f(
+            1.0f * (float)corners[i].x,
+            Y_CUSHION, 
+            1.0f * (float)corners[i].y
+        );
     }
     glEnd();
-    glColor3f(0, 0.3, 0);       // 库与台连接深绿色
+    glColor3f(0.0f, 0.3f, 0.0f);       // 库与台连接深绿色
     glBegin(GL_QUADS);
     for (int i = 0; i < n_corners; ++i) {
-        glVertex3f(1.1 * corners[i].x, Y_CUSHION, 1.1 * corners[i].y);
-        glVertex3f(1.1 * corners[(i + 1) % n_corners].x, Y_CUSHION, 1.1 * corners[(i + 1) % n_corners].y);
-        glVertex3f(1.0 * corners[(i + 1) % n_corners].x, Y_PLANE, 1.0 * corners[(i + 1) % n_corners].y);
-        glVertex3f(1.0 * corners[i].x, Y_PLANE, 1.0 * corners[i].y);
+        glVertex3f(
+            1.1f * (float)corners[i].x, 
+            Y_CUSHION, 
+            1.1f * (float)corners[i].y);
+        glVertex3f(
+            1.1f * (float)corners[(i + 1) % n_corners].x, 
+            Y_CUSHION, 
+            1.1f * (float)corners[(i + 1) % n_corners].y);
+        glVertex3f(
+            1.0f * (float)corners[(i + 1) % n_corners].x, 
+            Y_PLANE, 
+            1.0f * (float)corners[(i + 1) % n_corners].y);
+        glVertex3f(
+            1.0f * (float)corners[i].x, 
+            Y_PLANE, 
+            1.0f * (float)corners[i].y);
     }
     glEnd();
 
@@ -159,26 +210,50 @@ void Table::render() {
     glColor3f(0.5, 0.25, 0);    // 褐色
     glBegin(GL_TRIANGLES);
     for (int i = 0; i < n_corners; ++i) {
-        glVertex3f(0.95 * corners[i].x, Y_LOW, 0.95 * corners[i].y);
-        glVertex3f(0.95 * corners[(i + 1) % n_corners].x, Y_LOW, 0.95 * corners[(i + 1) % n_corners].y);
+        glVertex3f(
+            0.95f * (float)corners[i].x, 
+            Y_LOW, 
+            0.95f * (float)corners[i].y);
+        glVertex3f(
+            0.95f * (float)corners[(i + 1) % n_corners].x, 
+            Y_LOW, 
+            0.95f * (float)corners[(i + 1) % n_corners].y);
         glVertex3f(0.0f, Y_LOW, 0.0f);
     }
     glEnd();
 
     // 绘制库与底面的连接
-    glColor3f(0.45, 0.23, 0);    // 褐色
+    glColor3f(0.45f, 0.23f, 0.0f);    // 褐色
     glBegin(GL_QUADS);
     for (int i = 0; i < n_corners; ++i) {
-        glVertex3f(0.95 * corners[i].x, Y_LOW, 0.95 * corners[i].y);
-        glVertex3f(0.95 * corners[(i + 1) % n_corners].x, Y_LOW, 0.95 * corners[(i + 1) % n_corners].y);
-        glVertex3f(1.2 * corners[(i + 1) % n_corners].x, Y_CUSHION, 1.2 * corners[(i + 1) % n_corners].y);
-        glVertex3f(1.2 * corners[i].x, Y_CUSHION, 1.2 * corners[i].y);
+        glVertex3f(
+            0.95f * (float)corners[i].x, 
+            Y_LOW, 
+            0.95f * (float)corners[i].y);
+        glVertex3f(
+            0.95f * (float)corners[(i + 1) % n_corners].x, 
+            Y_LOW, 
+            0.95f * (float)corners[(i + 1) % n_corners].y);
+        glVertex3f(
+            1.2f * (float)corners[(i + 1) % n_corners].x, 
+            Y_CUSHION, 
+            1.2f * (float)corners[(i + 1) % n_corners].y);
+        glVertex3f(
+            1.2f * (float)corners[i].x, 
+            Y_CUSHION, 
+            1.2f * (float)corners[i].y);
     }
     glEnd();
 
     // 绘制球洞，黑色
     for (const auto& hole : holes) {
-        draw_cylinder(Vector2(hole.x, hole.y), HOLE_RADIUS, Y_PLANE + 0.001, Y_CUSHION + 0.001, 0, 0, 0);
+        draw_cylinder(
+            Vector2(hole.x, hole.y), 
+            HOLE_RADIUS, 
+            Y_PLANE + 0.001f, 
+            Y_CUSHION + 0.001f, 
+            0, 0, 0
+        );
     }
     
     // 恢复光照

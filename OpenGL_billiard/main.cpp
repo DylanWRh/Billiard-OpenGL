@@ -18,7 +18,14 @@
 
 
 static Game g;
-static int view_option = 0;
+
+// 为gluLookAt旋转视角准备的变量
+static int view_mode = 0;   // 0表示自由视角，1表示垂直视角，用鼠标右键转换
+static GLfloat distance = 10.0f;
+static GLfloat angleH = 0.0f, angleV = 60.0f;
+static GLfloat upx = 0.0f, upy = 1.0f, upz = 0.0f;
+
+// 窗口大小
 constexpr int WIN_WIDTH = 1200;
 constexpr int WIN_HEIGHT = 1000;
 
@@ -45,6 +52,8 @@ void mouseMotion(int x, int y);
 // 鼠标点击函数
 void mouseClick(int button, int state, int x, int y);
 
+// 键盘响应函数
+void specialKeys(int key, int x, int y);
 
 int main(int argc, char** argv)
 {
@@ -60,12 +69,13 @@ int main(int argc, char** argv)
     // 球桌和球的初始化
     myinit();
 
-    // 函数绑定
+    // 注册回调函数
     glutReshapeFunc(myReshape);
     glutDisplayFunc(display);
     glutIdleFunc(idle);
     glutPassiveMotionFunc(mouseMotion);
     glutMouseFunc(mouseClick);
+    glutSpecialFunc(specialKeys);
     glutMainLoop();
 }
 
@@ -108,42 +118,64 @@ void display(void)
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glLoadIdentity();
 
-    if (view_option) {
-        gluLookAt(0, 10, 0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0);
+    if (view_mode) {
+        gluLookAt(0.0, 10.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -1.0);
     }
     else {
-        gluLookAt(0, 5, -7, 0.0, 0.0, 0.0, 0.0, 0.8, 0.2);
+        // 计算摄像机位置
+        float radianH = (float)(angleH * PI / 180.0);
+        float radianV = (float)(angleV * PI / 180.0);
+
+        float eyex = distance * cos(radianV) * sin(radianH);
+        float eyey = distance * sin(radianV);
+        float eyez = distance * cos(radianV) * cos(radianH);
+
+        gluLookAt(eyex, eyey, eyez, 0.0, 0.0, 0.0, upx, upy, upz);
     }
 
     // 绘制球桌
-
     g.updateState();
     glClear(GL_COLOR_BUFFER_BIT);
     g.render();
 
-    //// 显示当前玩家以及应该击打的球
-    //glColor3f(0.0, 0.0, 0.0);
-    //if (g.cur_player == 0) {
-    //    renderBoldStrokeString(-5.5f, 3.9f, 0.005f, "Player 1", 3.0);
-    //    draw_circle(Vector2(5, 4), 0.5, 1.0, 0.0, 0.0);
-    //}
-    //else {
-    //    renderBoldStrokeString(-5.5f, 3.9f, 0.005f, "Player 2", 3.0);
-    //    draw_circle(Vector2(5, 4), 0.5, 1.0, 0.0, 0.0);
-    //    draw_circle(Vector2(5, 4), 0.25, 1.0, 1.0, 1.0);
-    //}
+    // 2D部分
+    glMatrixMode(GL_PROJECTION);
+    glPushMatrix();
+    glLoadIdentity();
+    gluOrtho2D(-6, 6, -5, 5); 
+    glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
+    glLoadIdentity();
+    
+    // 显示当前玩家以及应该击打的球
+    glColor3f(1.0, 1.0, 1.0);
+    if (g.cur_player == 0) {
+        renderBoldStrokeString(-5.5f, 3.9f, 0.005f, "Player 1", 3.0);
+        draw_circle(Vector2(5, 4), 0.5, 1.0, 0.0, 0.0);
+    }
+    else {
+        renderBoldStrokeString(-5.5f, 3.9f, 0.005f, "Player 2", 3.0);
+        draw_circle(Vector2(5, 4), 0.25, 1.0, 1.0, 1.0);
+        draw_circle(Vector2(5, 4), 0.5, 1.0, 0.0, 0.0);
+        
+    }
 
-    //// 显示游戏结束的文字
-    //if (g.gameState == Game::GAME_OVER) {
-    //    glColor3f(1.0, 0.0, 0.0);
-    //    renderBoldStrokeString(-4.0f, 0.0f, 0.01f, "GAME OVER", 3.0);
-    //    if (g.winner == 1) {
-    //        renderBoldStrokeString(-2.0f, -1.0f, 0.004f, "Player 1 Wins", 3.0);
-    //    }
-    //    else if (g.winner == 2) {
-    //        renderBoldStrokeString(-2.0f, -1.0f, 0.004f, "Player 2 Wins", 3.0);
-    //    }
-    //}
+    // 显示游戏结束的文字
+    if (g.gameState == Game::GAME_OVER) {
+        glColor3f(1.0, 0.0, 0.0);
+        renderBoldStrokeString(-4.0f, 0.0f, 0.01f, "GAME OVER", 3.0);
+        if (g.winner == 1) {
+            renderBoldStrokeString(-2.0f, -1.0f, 0.004f, "Player 1 Wins", 3.0);
+        }
+        else if (g.winner == 2) {
+            renderBoldStrokeString(-2.0f, -1.0f, 0.004f, "Player 2 Wins", 3.0);
+        }
+    }
+
+    glMatrixMode(GL_PROJECTION);
+    glPopMatrix();
+    glMatrixMode(GL_MODELVIEW);
+    glPopMatrix();
 
     glutSwapBuffers();
 }
@@ -195,7 +227,40 @@ void mouseClick(int button, int state, int x, int y) {
     if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
         g.mouse_click();
     }
-    if (button == GLUT_RIGHT_BUTTON && state == GLUT_DOWN) {
-        view_option = 1 - view_option;
+    else if (button == GLUT_RIGHT_BUTTON && state == GLUT_DOWN) {
+        view_mode = 1 - view_mode;
     }
+    else if (button == 3) { // 鼠标滚轮向上
+        distance -= 0.05f;
+        if (distance < 7.0f) distance = 7.0f; 
+    }
+    else if (button == 4) { // 鼠标滚轮向下
+        distance += 0.05f;
+        if (distance > 20.0f) distance = 20.0f;
+    }
+}
+
+void specialKeys(int key, int x, int y) {
+    float angleStep = 5.0f;
+
+    switch (key) {
+    case GLUT_KEY_LEFT:
+        angleH -= angleStep;
+        break;
+    case GLUT_KEY_RIGHT:
+        angleH += angleStep;
+        break;
+    case GLUT_KEY_UP:
+        angleV += angleStep;
+        break;
+    case GLUT_KEY_DOWN:
+        angleV -= angleStep;
+        break;
+    }
+
+    // 限制垂直角度范围
+    if (angleV > 89.0f) angleV = 89.0f;
+    if (angleV < 10.0f) angleV = 10.0f;
+
+    glutPostRedisplay();
 }

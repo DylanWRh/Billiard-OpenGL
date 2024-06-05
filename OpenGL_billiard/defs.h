@@ -21,7 +21,7 @@ constexpr float Y_CUSHION = 1.3f;     // 库边高度
 constexpr float Y_LOW = 0.0f;         // 底面高度
 // 渲染球时的分割迭代次数
 constexpr int SUBDIVIDE_TETRA = 4;
-constexpr float Y_BALL = Y_PLANE + BALL_RADIUS;
+constexpr float Y_BALL = Y_PLANE + (float)BALL_RADIUS;
 
 // 最大击球时球速
 constexpr float VEL_MAX = 23.0f;
