@@ -147,6 +147,7 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="math_utils.cpp" />
     <ClCompile Include="render_utils.cpp" />
+    <ClCompile Include="Sphere.cpp" />
     <ClCompile Include="Table.cpp" />
     <ClCompile Include="utils.cpp" />
   </ItemGroup>
@@ -156,6 +157,7 @@
     <ClInclude Include="defs.h" />
     <ClInclude Include="math_utils.h" />
     <ClInclude Include="render_utils.h" />
+    <ClInclude Include="Sphere.h" />
     <ClInclude Include="Table.h" />
     <ClInclude Include="utils.h" />
     <ClInclude Include="Balls.h" />

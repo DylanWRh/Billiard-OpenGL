@@ -76,9 +76,6 @@ void Game::renderMouse() {
         return;
     }
     if (gameState == GAME_RUN_STATIC) {
-        glLineWidth(2); // Set the line width
-        glColor3f(1.0, 1.0, 1.0); // White color
-
         // 目前白球所在的位置
         Vector2 cue_pos;
         for (const auto& ball : balls.balls) {
@@ -160,6 +157,56 @@ void Game::renderMouse() {
         }
         Vector2 render_pos = cue_pos + cue2mouse * min_len;
 
+        // 绘制白球的碰撞位置
+        // 禁用光照
+        glDisable(GL_LIGHTING);
+
+        // 设置透明度
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glColor4f(1.0, 1.0, 1.0, 0.5);
+        // 设置位置
+        glPushMatrix(); // 保存当前矩阵状态
+        glTranslatef(render_pos.x, Y_BALL, render_pos.y);
+        // 绘制较为透明的球
+        glutSolidSphere(BALL_RADIUS, 50, 50);
+        glPopMatrix(); // 恢复之前保存的矩阵状态
+
+        // 设置线段宽度，颜色为白色
+        glLineWidth(2);
+        glColor4f(1.0, 1.0, 1.0, 1.0);
+        // 绘制连接线和碰撞后的方向
+        glBegin(GL_LINES);
+        glVertex3f(
+            static_cast<GLfloat>(cue_pos.x),
+            static_cast<GLfloat>(Y_BALL),
+            static_cast<GLfloat>(cue_pos.y)
+        );
+        glVertex3f(
+            static_cast<GLfloat>(render_pos.x),
+            static_cast<GLfloat>(Y_BALL),
+            static_cast<GLfloat>(render_pos.y)
+        );
+        glVertex3f(
+            static_cast<GLfloat>(render_pos.x),
+            static_cast<GLfloat>(Y_BALL),
+            static_cast<GLfloat>(render_pos.y)
+        );
+        Vector2 render_end = render_pos + (tar_pos - render_pos) * 5;
+        glVertex3f(
+            static_cast<GLfloat>(render_end.x),
+            static_cast<GLfloat>(Y_BALL),
+            static_cast<GLfloat>(render_end.y)
+        );
+        glEnd();
+
+        // 启用光照
+        glEnable(GL_LIGHTING);
+
+        /*
+        以下是原先的2D版本
+        glLineWidth(2); // Set the line width
+        glColor3f(1.0, 1.0, 1.0); // White color
         draw_hollow_circle(render_pos, static_cast<float>(BALL_RADIUS), 1, 1, 1);
 
         glLineWidth(2);
@@ -183,9 +230,33 @@ void Game::renderMouse() {
             static_cast<GLfloat>(render_end.y)
         );
         glEnd();
+        以上是原先的2D版本
+        */
     }
     else if (gameState == GAME_RUN_SETTING) {
-         draw_hollow_circle(mouse_pos, static_cast<float>(BALL_RADIUS), 1, 1, 1);
+    // 绘制白球的碰撞位置
+        // 禁用光照
+        glDisable(GL_LIGHTING);
+
+        // 设置透明度
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glColor4f(1.0, 1.0, 1.0, 0.5);
+        // 设置位置
+        glPushMatrix(); // 保存当前矩阵状态
+        glTranslatef(mouse_pos.x, Y_BALL, mouse_pos.y);
+        // 绘制较为透明的球
+        glutSolidSphere(BALL_RADIUS, 50, 50);
+        glPopMatrix(); // 恢复之前保存的矩阵状态
+
+        // 启用光照
+        glEnable(GL_LIGHTING);
+
+        /*
+        以下是原先的2D版本
+        draw_hollow_circle(mouse_pos, static_cast<float>(BALL_RADIUS), 1, 1, 1);
+        以上是原先的2D版本
+        */
     }
 }
 
@@ -266,6 +337,10 @@ void Game::mouse_click() {
         for (auto& ball : balls.balls) {
             if (ball.m_type == Ball::CUE) {
                 ball.m_velocity = (mouse_pos - ball.m_position) * 4;
+                if (ball.m_velocity.Length2D() > VEL_MAX) {
+                    ball.m_velocity.Normalize();
+                    ball.m_velocity = ball.m_velocity * VEL_MAX;
+                }
                 return;
             }
         }

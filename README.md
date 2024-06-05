@@ -9,11 +9,11 @@ Term Project for the course **Computer Graphics**, 24 Spring, Peking University.
   - [x] 台球进洞评判
   - [ ] 击球音效
   - [ ] 计分是否准确
-- [ ] 模拟效果逼真度
-- [ ] 用户界面友好程度
+- [x] 模拟效果逼真度
+- [x] 用户界面友好程度
 - [ ] 项目演示和报告质量
-- [ ] 室内光照效果
-- [ ] 3D 台球（附加分）
+- [x] 室内光照效果
+- [x] 3D 台球（附加分）
 
 ## Installation
 

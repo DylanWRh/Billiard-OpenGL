@@ -106,8 +106,90 @@ int Table::checkInit() const{
 }
 
 void Table::render() {
+
+    // 球台不用光照渲染
+    glDisable(GL_LIGHTING);
+
+    // 绘制球台
+    // 以下变量已经修改为defs中的参数
+    // float y_plane = 1.0f;       // 台面高度
+    // float y_cushion = 1.3f;     // 库边高度
+    // float y_low = 0.0f;         // 底面高度
+
+    // 绘制台面
+    glColor3f(0, 1.0, 0);       // 绿色
+    glBegin(GL_TRIANGLES);
+    for (int i = 0; i < n_corners; ++i) {
+        glVertex3f(1.1 * corners[i].x, Y_PLANE, 1.1 * corners[i].y);
+        glVertex3f(1.1 * corners[(i + 1) % n_corners].x, Y_PLANE, 1.1 * corners[(i + 1) % n_corners].y);
+        glVertex3f(0.0f, Y_PLANE, 0.0f);
+    }
+    glEnd();
+
+    // 绘制库边
+    glColor3f(0.4, 0.2, 0);    // 外围深褐色
+    glBegin(GL_QUADS);
+    for (int i = 0; i < n_corners; ++i) {
+        glVertex3f(1.1 * corners[i].x, Y_CUSHION, 1.1 * corners[i].y);
+        glVertex3f(1.1 * corners[(i + 1) % n_corners].x, Y_CUSHION, 1.1 * corners[(i + 1) % n_corners].y);
+        glVertex3f(1.2 * corners[(i + 1) % n_corners].x, Y_CUSHION, 1.2 * corners[(i + 1) % n_corners].y);
+        glVertex3f(1.2 * corners[i].x, Y_CUSHION, 1.2 * corners[i].y);
+    }
+    glEnd();
+    glColor3f(0, 0.5, 0);       // 内圈墨绿色
+    glBegin(GL_QUADS);
+    for (int i = 0; i < n_corners; ++i) {
+        glVertex3f(1.1 * corners[i].x, Y_CUSHION, 1.1 * corners[i].y);
+        glVertex3f(1.1 * corners[(i + 1) % n_corners].x, Y_CUSHION, 1.1 * corners[(i + 1) % n_corners].y);
+        glVertex3f(1.0 * corners[(i + 1) % n_corners].x, Y_CUSHION, 1.0 * corners[(i + 1) % n_corners].y);
+        glVertex3f(1.0 * corners[i].x, Y_CUSHION, 1.0 * corners[i].y);
+    }
+    glEnd();
+    glColor3f(0, 0.3, 0);       // 库与台连接深绿色
+    glBegin(GL_QUADS);
+    for (int i = 0; i < n_corners; ++i) {
+        glVertex3f(1.1 * corners[i].x, Y_CUSHION, 1.1 * corners[i].y);
+        glVertex3f(1.1 * corners[(i + 1) % n_corners].x, Y_CUSHION, 1.1 * corners[(i + 1) % n_corners].y);
+        glVertex3f(1.0 * corners[(i + 1) % n_corners].x, Y_PLANE, 1.0 * corners[(i + 1) % n_corners].y);
+        glVertex3f(1.0 * corners[i].x, Y_PLANE, 1.0 * corners[i].y);
+    }
+    glEnd();
+
+    // 绘制底面
+    glColor3f(0.5, 0.25, 0);    // 褐色
+    glBegin(GL_TRIANGLES);
+    for (int i = 0; i < n_corners; ++i) {
+        glVertex3f(0.95 * corners[i].x, Y_LOW, 0.95 * corners[i].y);
+        glVertex3f(0.95 * corners[(i + 1) % n_corners].x, Y_LOW, 0.95 * corners[(i + 1) % n_corners].y);
+        glVertex3f(0.0f, Y_LOW, 0.0f);
+    }
+    glEnd();
+
+    // 绘制库与底面的连接
+    glColor3f(0.45, 0.23, 0);    // 褐色
+    glBegin(GL_QUADS);
+    for (int i = 0; i < n_corners; ++i) {
+        glVertex3f(0.95 * corners[i].x, Y_LOW, 0.95 * corners[i].y);
+        glVertex3f(0.95 * corners[(i + 1) % n_corners].x, Y_LOW, 0.95 * corners[(i + 1) % n_corners].y);
+        glVertex3f(1.2 * corners[(i + 1) % n_corners].x, Y_CUSHION, 1.2 * corners[(i + 1) % n_corners].y);
+        glVertex3f(1.2 * corners[i].x, Y_CUSHION, 1.2 * corners[i].y);
+    }
+    glEnd();
+
+    // 绘制球洞，黑色
+    for (const auto& hole : holes) {
+        draw_cylinder(Vector2(hole.x, hole.y), HOLE_RADIUS, Y_PLANE + 0.001, Y_CUSHION + 0.001, 0, 0, 0);
+    }
+    
+    // 恢复光照
+    glEnable(GL_LIGHTING);
+
+    /* 
+    以下是原先的2D版本
     draw_poly(n_corners, corners.data());
     for (const auto& hole : holes) {
         draw_circle(Vector2(hole.x, hole.y), HOLE_RADIUS, 0.0f, 0.0f, 0.0f);
-    }
+    } 
+    以上是原先的2D版本 
+    */
 }

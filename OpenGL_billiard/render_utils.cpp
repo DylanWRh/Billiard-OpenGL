@@ -17,6 +17,80 @@ void draw_circle(const Vector2& pos, float radius, float r, float g, float b)
     glEnd();
 }
 
+void draw_circle3D(const Vector2& pos, float radius, float y, float r, float g, float b) {
+    glColor3f(r, g, b);
+    glBegin(GL_POLYGON);
+    for (int i = 0; i < 50; i++) {
+        float theta = 2.0f * 3.1415926f * float(i) / float(50);
+        float x = radius * cosf(theta);
+        float z = radius * sinf(theta);
+        glVertex3f(
+            static_cast<float>(x + pos.x),
+            y,
+            static_cast<float>(z + pos.y)
+        );
+    }
+    glEnd();
+}
+
+void draw_cylinder(const Vector2& pos, float radius, float y_low, float y_high, float r, float g, float b) {
+    glColor3f(r, g, b);
+    glBegin(GL_POLYGON);
+    for (int i = 0; i < 50; i++) {
+        float theta = 2.0f * 3.1415926f * float(i) / float(50);
+        float x = radius * cosf(theta);
+        float z = radius * sinf(theta);
+        glVertex3f(
+            static_cast<float>(x + pos.x),
+            y_low,
+            static_cast<float>(z + pos.y)
+        );
+    }
+    glEnd();
+    glBegin(GL_POLYGON);
+    for (int i = 0; i < 50; i++) {
+        float theta = 2.0f * 3.1415926f * float(i) / float(50);
+        float x = radius * cosf(theta);
+        float z = radius * sinf(theta);
+        glVertex3f(
+            static_cast<float>(x + pos.x),
+            y_high,
+            static_cast<float>(z + pos.y)
+        );
+    }
+    glEnd();
+    glBegin(GL_QUADS);
+    for (int i = 0; i < 50; i++) {
+        float theta1 = 2.0f * 3.1415926f * float(i) / float(50);
+        float x1 = radius * cosf(theta1);
+        float z1 = radius * sinf(theta1);
+        float theta2 = 2.0f * 3.1415926f * float((i + 1) % 50) / float(50);
+        float x2 = radius * cosf(theta2);
+        float z2 = radius * sinf(theta2);
+        glVertex3f(
+            static_cast<float>(x1 + pos.x),
+            y_low,
+            static_cast<float>(z1 + pos.y)
+        );
+        glVertex3f(
+            static_cast<float>(x2 + pos.x),
+            y_low,
+            static_cast<float>(z2 + pos.y)
+        );
+        glVertex3f(
+            static_cast<float>(x2 + pos.x),
+            y_high,
+            static_cast<float>(z2 + pos.y)
+        );
+        glVertex3f(
+            static_cast<float>(x1 + pos.x),
+            y_high,
+            static_cast<float>(z1 + pos.y)
+        );
+    }
+    glEnd();
+}
+
 void draw_hollow_circle(const Vector2& pos, float radius, float r, float g, float b) {
     glColor3f(r, g, b);
     glBegin(GL_LINE_LOOP);
@@ -35,25 +109,7 @@ void draw_hollow_circle(const Vector2& pos, float radius, float r, float g, floa
 void draw_poly(int num, const Vector2* const vex)
 {
     glColor3f(0, 1.0, 0);
-    //glBegin(GL_TRIANGLES);
-    //// TODO:
-    //// https://blog.csdn.net/m0_52727721/article/details/128263015
-    //for (int i = 0; i < num; ++i) {
-    //    glVertex2f(
-    //        0.0, 0.0
-    //    );
-    //    glVertex2f(
-    //        static_cast<float>(vex[i].x),
-    //        static_cast<float>(vex[i].y)
-    //    );
-    //    glVertex2f(
-    //        static_cast<float>(vex[(i + 1) % num].x),
-    //        static_cast<float>(vex[(i + 1) % num].y)
-    //    );
-    //}
-
-    //glEnd();
-
+    // https://blog.csdn.net/m0_52727721/article/details/128263015
 
     //画凹多边形第一遍
     glColor3f(1.0f, 0.0f, 0.0f);

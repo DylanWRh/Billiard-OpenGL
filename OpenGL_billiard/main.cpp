@@ -8,6 +8,7 @@
 #endif
 #include <thread>
 
+#include "defs.h"
 #include "Table.h"
 #include "Balls.h"
 #include "defs.h"
@@ -17,10 +18,16 @@
 
 
 static Game g;
+static int view_option = 0;
+constexpr int WIN_WIDTH = 1200;
+constexpr int WIN_HEIGHT = 1000;
 
 // Helper Functions
 
-// 初始化OpenGL设置，初始化球桌和球
+// 初始化OpenGL设置
+void myGLinit();
+
+// 初始化球桌和球
 void myinit();
 
 // 显示球桌、球和文字
@@ -41,11 +48,19 @@ void mouseClick(int button, int state, int x, int y);
 
 int main(int argc, char** argv)
 {
+    // 基础设置
     glutInit(&argc, argv);
-    glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
-    glutInitWindowSize(1200, 1000);
+    glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
+    glutInitWindowSize(WIN_WIDTH, WIN_HEIGHT);
     glutCreateWindow("Billiard");
+
+    // OpenGL相关设置
+    myGLinit();
+
+    // 球桌和球的初始化
     myinit();
+
+    // 函数绑定
     glutReshapeFunc(myReshape);
     glutDisplayFunc(display);
     glutIdleFunc(idle);
@@ -54,17 +69,27 @@ int main(int argc, char** argv)
     glutMainLoop();
 }
 
-void myinit() {
-    // 初始化OpenGL设置
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    gluOrtho2D(-6, 6, -6, 6);
-    glMatrixMode(GL_MODELVIEW);
-    glClearColor(1.0, 1.0, 1.0, 1.0);
-    glColor3f(1.0, 0.0, 0.0);
+void myGLinit() {
+    // 光照渲染准备
+    glEnable(GL_DEPTH_TEST);    // 启用深度测试
+    glEnable(GL_LIGHTING);      // 启用光照计算
+    glEnable(GL_LIGHT0);        // 启用第一个光源
+    glEnable(GL_NORMALIZE);     // 启用法向量归一化
 
+    // 设置环境光照参数
+    GLfloat light_ambient[] = { 1.0, 1.0, 1.0, 1.0 };  // 环境光为白光
+    GLfloat light_diffuse[] = { 1.0, 1.0, 1.0, 1.0 };  // 漫反射光为白光
+    GLfloat light_specular[] = { 1.0, 1.0, 1.0, 1.0 }; // 镜面反射光为白光
+    GLfloat light_position[] = { 0.0, 10.0, 0.0, 0.0 }; // 光源位置
+    glLightfv(GL_LIGHT0, GL_AMBIENT, light_ambient);
+    glLightfv(GL_LIGHT0, GL_DIFFUSE, light_diffuse);
+    glLightfv(GL_LIGHT0, GL_SPECULAR, light_specular);
+    glLightfv(GL_LIGHT0, GL_POSITION, light_position);
+}
+
+void myinit() {
     // 初始化球桌
-    Table table(8, 5, 3, 5);
+    Table table(8, 5, 4, 6);
 
     // 初始化所有球摆球
     Vector2 white_position(-2, 0.0);
@@ -80,34 +105,45 @@ void myinit() {
 
 void display(void)
 {
-    // 显示球桌和球
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glLoadIdentity();
+
+    if (view_option) {
+        gluLookAt(0, 10, 0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0);
+    }
+    else {
+        gluLookAt(0, 5, -7, 0.0, 0.0, 0.0, 0.0, 0.8, 0.2);
+    }
+
+    // 绘制球桌
+
     g.updateState();
     glClear(GL_COLOR_BUFFER_BIT);
     g.render();
 
-    // 显示当前玩家以及应该击打的球
-    glColor3f(0.0, 0.0, 0.0);
-    if (g.cur_player == 0) {
-        renderBoldStrokeString(-5.5f, 3.9f, 0.005f, "Player 1", 3.0);
-        draw_circle(Vector2(5, 4), 0.5, 1.0, 0.0, 0.0);
-    }
-    else {
-        renderBoldStrokeString(-5.5f, 3.9f, 0.005f, "Player 2", 3.0);
-        draw_circle(Vector2(5, 4), 0.5, 1.0, 0.0, 0.0);
-        draw_circle(Vector2(5, 4), 0.25, 1.0, 1.0, 1.0);
-    }
+    //// 显示当前玩家以及应该击打的球
+    //glColor3f(0.0, 0.0, 0.0);
+    //if (g.cur_player == 0) {
+    //    renderBoldStrokeString(-5.5f, 3.9f, 0.005f, "Player 1", 3.0);
+    //    draw_circle(Vector2(5, 4), 0.5, 1.0, 0.0, 0.0);
+    //}
+    //else {
+    //    renderBoldStrokeString(-5.5f, 3.9f, 0.005f, "Player 2", 3.0);
+    //    draw_circle(Vector2(5, 4), 0.5, 1.0, 0.0, 0.0);
+    //    draw_circle(Vector2(5, 4), 0.25, 1.0, 1.0, 1.0);
+    //}
 
-    // 显示游戏结束的文字
-    if (g.gameState == Game::GAME_OVER) {
-        glColor3f(1.0, 0.0, 0.0);
-        renderBoldStrokeString(-4.0f, 0.0f, 0.01f, "GAME OVER", 3.0);
-        if (g.winner == 1) {
-            renderBoldStrokeString(-2.0f, -1.0f, 0.004f, "Player 1 Wins", 3.0);
-        }
-        else if (g.winner == 2) {
-            renderBoldStrokeString(-2.0f, -1.0f, 0.004f, "Player 2 Wins", 3.0);
-        }
-    }
+    //// 显示游戏结束的文字
+    //if (g.gameState == Game::GAME_OVER) {
+    //    glColor3f(1.0, 0.0, 0.0);
+    //    renderBoldStrokeString(-4.0f, 0.0f, 0.01f, "GAME OVER", 3.0);
+    //    if (g.winner == 1) {
+    //        renderBoldStrokeString(-2.0f, -1.0f, 0.004f, "Player 1 Wins", 3.0);
+    //    }
+    //    else if (g.winner == 2) {
+    //        renderBoldStrokeString(-2.0f, -1.0f, 0.004f, "Player 2 Wins", 3.0);
+    //    }
+    //}
 
     glutSwapBuffers();
 }
@@ -119,22 +155,47 @@ void idle()
 
 void myReshape(int w, int h)
 {
+    glViewport(0, 0, (GLsizei)w, (GLsizei)h);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    gluOrtho2D(-6, 6, -5, 5);
-    glViewport(-6, -5, 1200, 1000); 
+    gluPerspective(90, (GLfloat)w / (GLfloat)h, 1.0, 20.0);
     glMatrixMode(GL_MODELVIEW);
     glutPostRedisplay();
 }
 
 void mouseMotion(int x, int y) {
+    GLint viewport[4];
+    GLdouble modelview[16];
+    GLdouble projection[16];
+    GLfloat winX, winY, winZ;
+    GLdouble worldX, worldY, worldZ;
+
+    glGetDoublev(GL_MODELVIEW_MATRIX, modelview);
+    glGetDoublev(GL_PROJECTION_MATRIX, projection);
+    glGetIntegerv(GL_VIEWPORT, viewport);
+
+    winX = (float)x;
+    winY = (float)viewport[3] - (float)y;
+    glReadPixels(x, (int)winY, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &winZ);
+
+    gluUnProject(winX, winY, winZ, modelview, projection, viewport, &worldX, &worldY, &worldZ);
+
+    g.mouse_pos = Vector2(worldX, worldZ);
+
+    /*
+    以下是原先的2D版本
     double mouse_x = (double)x / 100 - 6.0;
     double mouse_y = 5.0 - (double)y / 100;
     g.mouse_pos = Vector2(mouse_x, mouse_y);
+    以上是原先的2D版本
+    */
 }
 
 void mouseClick(int button, int state, int x, int y) {
     if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
         g.mouse_click();
+    }
+    if (button == GLUT_RIGHT_BUTTON && state == GLUT_DOWN) {
+        view_option = 1 - view_option;
     }
 }

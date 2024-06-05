@@ -48,6 +48,9 @@
     <ClCompile Include="Ball.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="Sphere.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="game.h">
@@ -72,6 +75,9 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="Balls.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Sphere.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

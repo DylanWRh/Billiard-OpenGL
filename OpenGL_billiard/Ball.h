@@ -1,5 +1,6 @@
 #pragma once
 #include "math_utils.h"
+#include "Sphere.h"
 #include "defs.h"
 
 class Ball
@@ -17,7 +18,11 @@ public:
     Vector2 m_position;
     Vector2 m_velocity;
     BallType m_type;
+
+    // ‰÷»æœ‡πÿ
     BallColor m_color;
+    Vector3 main_axis;  // ÷˜÷·
+    static Sphere sphere;
 
     Ball(
         const Vector2& position, 
