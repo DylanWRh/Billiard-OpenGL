@@ -24,7 +24,10 @@ void draw_hollow_circle(const Vector2& pos, float radius, float r, float g, floa
         float angle = 2.0f * 3.14159f * float(i) / float(90);
         float dx = radius * cosf(angle);
         float dy = radius * sinf(angle);
-        glVertex2f(pos.x + dx, pos.y + dy);
+        glVertex2f(
+            static_cast<GLfloat>(pos.x + dx),
+            static_cast<GLfloat>(pos.y + dy)
+        );
     }
     glEnd();
 }

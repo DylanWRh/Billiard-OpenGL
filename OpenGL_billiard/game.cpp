@@ -67,7 +67,7 @@ void Game::renderMouse() {
 
         // 目前白球所在的位置
         Vector2 cue_pos;
-        for (auto& ball : balls.balls) {
+        for (const auto& ball : balls.balls) {
             if (ball.m_type == WHITE) {
                 cue_pos = ball.m_position;
                 break;
@@ -105,6 +105,40 @@ void Game::renderMouse() {
         }
 
         // TODO lower priority: ball-table
+        // hints: 应该整个循环，先计算出一次迭代中先碰球还是先碰桌子，如果先碰球，跳出循环，如果先碰桌子，更新碰墙白球位置以及碰后白球速度方向，进行下一轮轨迹计算
+        //// ball-table
+        //size_t corner_size = table.corners.size();
+        //for (size_t j = 0; j < corner_size; ++j) {
+        //    // 获取当前边的起点和终点
+        //    Vector2 p1 = table.corners[j];
+        //    Vector2 p2 = table.corners[(j + 1) % corner_size]; // 循环获取下一个顶点作为终点
+
+        //    // 计算当前边的方向向量
+        //    Vector2 edge_vector = p2 - p1;
+
+        //    // 计算当前边的法向量
+        //    Vector2 edge_normal = Vector2(p2.y - p1.y, -(p2.x - p1.x));
+        //    edge_normal.Normalize();
+
+        //    // 计算修正向量的方向，朝向离球最近的边界
+        //    Vector2 correction_direction = edge_normal * (edge_normal.Dot2D(cue_pos - p1) < 0 ? 1 : -1);
+
+        //    // 将边界沿着碰撞法线方向移动修正距离
+        //    p1 -= correction_direction * BALL_RADIUS;
+        //    p2 -= correction_direction * BALL_RADIUS;
+
+        //    // TODO: 计算碰撞距离
+
+        //    // 计算入射角度
+        //    double incident_angle = 2 * atan2(correction_direction.y, correction_direction.x) - atan2(cue2mouse.y, cue2mouse.x);
+
+        //    // 计算反射角度
+        //    constexpr double PI = 3.14159265358979323846; // 圆周率π的数值表示
+        //    double reflection_angle = incident_angle + PI;
+
+        //    // 将出球反向
+        //    cue2mouse = Vector2(cos(reflection_angle), sin(reflection_angle));
+        //}
 
         if (min_len > 1e99) {
             return;
@@ -136,7 +170,7 @@ void Game::renderMouse() {
         glEnd();
     }
     else if (gameState == GAME_RUN_SETTING) {
-         draw_hollow_circle(mouse_pos, BALL_RADIUS, 1, 1, 1);
+         draw_hollow_circle(mouse_pos, static_cast<float>(BALL_RADIUS), 1, 1, 1);
     }
 }
 
