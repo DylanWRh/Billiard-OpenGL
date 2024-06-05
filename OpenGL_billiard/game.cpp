@@ -82,8 +82,8 @@ void Game::renderMouse() {
         Vector2 tar_pos;
         double min_len = 1e100;
         double orth = 1e100;
-        for (auto& ball : balls.balls) {
-            if (ball.m_type == WHITE) {
+        for (const auto& ball : balls.balls) {
+            if (ball.m_type == WHITE || ball.m_inHole) {
                 continue;
             }
             // 白球到目标球的方向
@@ -95,30 +95,44 @@ void Game::renderMouse() {
             }
             // 目标球到出射方向的距离足够小，说明白球可能撞到它
             double dist2dir = sqrt(abs((cue2tar.x * cue2tar.x + cue2tar.y * cue2tar.y) - proj * proj));
-            if (dist2dir <= 2 * BALL_RADIUS && proj < min_len) {
-                min_len = proj;
+            double correction = sqrt((2 * BALL_RADIUS) * (2 * BALL_RADIUS) - dist2dir * dist2dir);
+            if (dist2dir <= 2 * BALL_RADIUS && proj - correction < min_len) {
+                
+                min_len = proj - correction;
                 orth = dist2dir;
                 tar_pos = ball.m_position;
-                ball.m_type = BLACK;
             }
         }
+
+        // TODO lower priority: ball-table
 
         if (min_len > 1e99) {
             return;
         }
-        double forward_length = min_len - sqrt(4 * BALL_RADIUS * BALL_RADIUS - orth * orth);
-        Vector2 render_pos = cue_pos + cue2mouse * forward_length;
+        Vector2 render_pos = cue_pos + cue2mouse * min_len;
 
-        draw_hollow_circle(render_pos, BALL_RADIUS, 1, 1, 1);
+        draw_hollow_circle(render_pos, static_cast<float>(BALL_RADIUS), 1, 1, 1);
 
         glLineWidth(2);
         glColor3f(1.0, 1.0, 1.0);
         glBegin(GL_LINES);
-        glVertex2f(cue_pos.x, cue_pos.y);
-        glVertex2f(render_pos.x, render_pos.y);
-        glVertex2f(render_pos.x, render_pos.y);
+        glVertex2f(
+            static_cast<GLfloat>(cue_pos.x),
+            static_cast<GLfloat>(cue_pos.y)
+        );
+        glVertex2f(
+            static_cast<GLfloat>(render_pos.x),
+            static_cast<GLfloat>(render_pos.y)
+        );
+        glVertex2f(
+            static_cast<GLfloat>(render_pos.x),
+            static_cast<GLfloat>(render_pos.y)
+        );
         Vector2 render_end = render_pos + (tar_pos - render_pos) * 3;
-        glVertex2f(render_end.x, render_end.y);
+        glVertex2f(
+            static_cast<GLfloat>(render_end.x),
+            static_cast<GLfloat>(render_end.y)
+        );
         glEnd();
     }
     else if (gameState == GAME_RUN_SETTING) {

@@ -22,13 +22,13 @@ void display(void)
 {
     int i = 0;
     static bool first_run = true;
-    if (first_run) {
-        first_run = false;
-        std::thread([]() {
-            while (true)
-                g.updateState();
-            }).detach();
-    }
+    //if (first_run) {
+    //    first_run = false;
+    //    std::thread([]() {
+    //        while (true)
+    //        }).detach();
+    //}
+    g.updateState();
 
     glClear(GL_COLOR_BUFFER_BIT);
     
