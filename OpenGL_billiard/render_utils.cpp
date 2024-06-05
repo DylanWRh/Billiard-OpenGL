@@ -99,3 +99,28 @@ void draw_poly(int num, const Vector2* const vex)
 
 }
 
+void renderBoldStrokeString(float x, float y, float scale, const char* string, float boldness) {
+    const char* c;
+    glPushMatrix();
+    glTranslatef(x, y, 0);
+    glScalef(scale, scale, scale);
+
+    for (float dx = -boldness; dx <= boldness; dx += boldness / 10) {
+        for (float dy = -boldness; dy <= boldness; dy += boldness / 10) {
+            if (dx != 0.0f || dy != 0.0f) {
+                glPushMatrix();
+                glTranslatef(dx, dy, 0);
+                for (c = string; *c != '\0'; c++) {
+                    glutStrokeCharacter(GLUT_STROKE_ROMAN, *c);
+                }
+                glPopMatrix();
+            }
+        }
+    }
+
+    for (c = string; *c != '\0'; c++) {
+        glutStrokeCharacter(GLUT_STROKE_ROMAN, *c);
+    }
+
+    glPopMatrix();
+}

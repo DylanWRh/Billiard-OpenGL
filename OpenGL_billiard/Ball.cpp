@@ -21,16 +21,16 @@ void Ball::render() const{
 	}
 	if (m_type == SINGLE_C || m_type == BLACK || m_type == CUE) {
 		draw_circle(
-			m_position, BALL_RADIUS,
-			m_color.x, m_color.y, m_color.z);
+			m_position, (float)BALL_RADIUS,
+			(float)m_color.x, (float)m_color.y, (float)m_color.z);
 	}
 	else if (m_type == DOUBLE_C) {
 		draw_circle(
-			m_position, BALL_RADIUS,
-			m_color.x, m_color.y, m_color.z);
+			m_position, (float)BALL_RADIUS,
+			(float)m_color.x, (float)m_color.y, (float)m_color.z);
 		draw_circle(
-			m_position, BALL_RADIUS / 3,
-			1.0, 1.0, 1.0);
+			m_position, (float)BALL_RADIUS / 3,
+			1.0f, 1.0f, 1.0f);
 	}
 	return;
 }

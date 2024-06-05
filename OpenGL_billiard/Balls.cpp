@@ -176,8 +176,8 @@ bool Balls::update(const Table& table, double delta_t) {
                 DebugMsg("发生球-球碰撞：\t 碰撞的球：(%lld, %lld)", i, j);
                 // 设置第一个被母球碰到的球的信息
                 if (first_hit_pos == cue_pos) {
-                    if (i == cue_pos) { first_hit_pos = j; }
-                    else if (j == cue_pos) { first_hit_pos = i; }
+                    if (i == cue_pos) { first_hit_pos = (int)j; }
+                    else if (j == cue_pos) { first_hit_pos = (int)i; }
                 }
                 
                 // TODO: 有时候球与球碰撞时，速度已经被设置成0了，原因是速度本来就很小，经过时间后被上面的速度更新变成0了
