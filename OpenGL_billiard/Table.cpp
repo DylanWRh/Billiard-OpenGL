@@ -134,6 +134,18 @@ void Table::render() {
     }
     glEnd();
 
+    // 添加一个完全透明的大平面，便于鼠标交互
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glColor4f(1.0, 1.0, 1.0, 0.0);
+    glBegin(GL_QUADS);
+    glVertex3f(100, Y_PLANE, 100);
+    glVertex3f(-100, Y_PLANE, 100);
+    glVertex3f(-100, Y_PLANE, -100);
+    glVertex3f(100, Y_PLANE, -100);
+    glEnd();
+    glDisable(GL_BLEND);
+
     // 绘制库边
     glColor3f(0.4f, 0.2f, 0.0f);    // 外围深褐色
     glBegin(GL_QUADS);
