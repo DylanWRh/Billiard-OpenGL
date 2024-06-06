@@ -134,20 +134,6 @@ void Table::render() {
     }
     glEnd();
 
-    // 添加大平面，便于鼠标交互
-    glEnable(GL_BLEND);
-    glDepthMask(GL_FALSE);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glColor4f(0.0f, 0.0f, 0.0f, 0.0f);
-    glBegin(GL_QUADS);
-    glVertex3f(-20, Y_PLANE, -20);
-    glVertex3f(20, Y_PLANE, -20);
-    glVertex3f(20, Y_PLANE, 20);
-    glVertex3f(-20, Y_PLANE, 20);
-    glEnd();
-    glDepthMask(GL_TRUE);
-    glDisable(GL_BLEND);
-
     // 绘制库边
     glColor3f(0.4f, 0.2f, 0.0f);    // 外围深褐色
     glBegin(GL_QUADS);
@@ -270,6 +256,18 @@ void Table::render() {
         );
     }
     
+    // 添加大平面，便于鼠标交互
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glColor4f(0.0f, 0.0f, 0.0f, 0.0f);
+    glBegin(GL_QUADS);
+    glVertex3f(-20, Y_PLANE, -20);
+    glVertex3f(20, Y_PLANE, -20);
+    glVertex3f(20, Y_PLANE, 20);
+    glVertex3f(-20, Y_PLANE, 20);
+    glEnd();
+    glDisable(GL_BLEND);
+
     // 恢复光照
     glEnable(GL_LIGHTING);
 
