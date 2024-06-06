@@ -56,6 +56,7 @@ void render2D(void);
 bool isInScene(int x, int y);
 
 // 调整加塞
+void fnSetSide(int x, int y);
 void setSide(int x, int y);
 
 // 空闲函数
@@ -95,7 +96,7 @@ int main(int argc, char** argv)
     glutDisplayFunc(display);
     glutIdleFunc(idle);
     glutPassiveMotionFunc(fnMouseMotion);
-    glutMotionFunc(fnMouseMotion);
+    glutMotionFunc(fnSetSide);
     glutMouseFunc(fnMouseClick);
     glutSpecialFunc(fnSpecialKeys);
     glutMainLoop();
@@ -182,12 +183,13 @@ void myReshape(int w, int h)
     glutPostRedisplay();
 }
 
-void fnMouseMotion(int x, int y) {
-    
+void fnSetSide(int x, int y) {
     if (mouse_down) {
         setSide(x, y);
     }
+}
 
+void fnMouseMotion(int x, int y) {
     GLint viewport[4];
     GLdouble modelview[16];
     GLdouble projection[16];
@@ -214,7 +216,7 @@ void fnMouseMotion(int x, int y) {
     以上是原先的2D版本
     */
 }
-
+#include <iostream>
 void fnMouseClick(int button, int state, int x, int y) {
     if (state == GLUT_DOWN) {
         mouse_down = true;
@@ -222,8 +224,9 @@ void fnMouseClick(int button, int state, int x, int y) {
     else if (state == GLUT_UP) {
         mouse_down = false;
     }
-    if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
-        if (!isInScene(x, y)) {
+
+    if (isInScene(x, y)) {
+        if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
             g.mouse_click();
         }
         if (g.gameState == Game::GAME_OVER) {
@@ -359,7 +362,7 @@ void render2D(void) {
 }
 
 bool isInScene(int x, int y) {
-    return (y <= 200);
+    return (y > 200);
 }
 
 void setSide(int x, int y) {
