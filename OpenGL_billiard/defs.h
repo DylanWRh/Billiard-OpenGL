@@ -49,9 +49,11 @@ namespace game_physics {
 	// Table roll-friction
 	constexpr double MuRoll = 0.15;
 	// Table slide-friction
-	constexpr double MuSlide = 0.65;
+	constexpr double MuSlide = 0.5;
 	// Friction const between ball and ball
-	constexpr double MuBall = 0.25;
+	constexpr double MuBall = 0.04;
+	// Friction const between ball and wall
+	constexpr double MuWall = 0.2;
 	// 球的转动惯量
 	constexpr double IBall = (2.0 * BallMass * BALL_RADIUS * BALL_RADIUS) / 5.0;
 

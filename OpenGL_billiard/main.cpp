@@ -9,6 +9,7 @@
 #endif
 #include <thread>
 #include <iostream>
+#include <string>
 #include "defs.h"
 #include "Table.h"
 #include "Balls.h"
@@ -17,9 +18,12 @@
 #include "math_utils.h"
 #include "render_utils.h"
 #include "sound_stuff.h"
+#include "utils.h"
 
 
 static Game g;
+static int player1_scores = 0;
+static int player2_scores = 0;
 
 // 为gluLookAt旋转视角准备的变量
 static int view_mode = 0;   // 0表示自由视角，1表示垂直视角，用鼠标右键转换
@@ -218,10 +222,18 @@ void fnMouseClick(int button, int state, int x, int y) {
     else if (state == GLUT_UP) {
         mouse_down = false;
     }
-
     if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
         if (!isInScene(x, y)) {
             g.mouse_click();
+        }
+        if (g.gameState == Game::GAME_OVER) {
+            if (abs(x - 600) < 120 && abs(y - 650) < 40) {
+                if (g.winner == 1)
+                    player1_scores++;
+                else
+                    player2_scores++;
+                myinit();
+            }
         }
     }
     else if (button == GLUT_RIGHT_BUTTON && state == GLUT_DOWN) {
@@ -313,6 +325,10 @@ void render2D(void) {
         glEnd();
     }
 
+    std::string score_text = "[Player 1] " + std::to_string(player1_scores) + " : "
+        + std::to_string(player2_scores) + " [Player 2]";
+    renderBoldStrokeString(-2.0f, 3.2f, 0.002f, score_text.c_str(), 2.0f);
+
     // 显示游戏结束的文字
     if (g.gameState == Game::GAME_OVER) {
         glColor3f(1.0, 0.0, 0.0);
@@ -323,6 +339,7 @@ void render2D(void) {
         else if (g.winner == 2) {
             renderBoldStrokeString(-2.0f, -1.0f, 0.004f, "Player 2 Wins", 3.0);
         }
+        renderBoldStrokeString(-1.0f, -1.75f, 0.004f, "Restart", 3.0);
     }
 
     // 顶部状态栏

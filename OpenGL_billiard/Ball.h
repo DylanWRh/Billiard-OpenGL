@@ -48,7 +48,7 @@ public:
     /// <returns>相对于球心的线速度</returns>
     Vector3 PerimeterSpeed(const Vector3& normal) const noexcept
     {
-        return m_angular_velocity.Cross(normal * -BALL_RADIUS);
+        return m_angular_velocity.Cross(normal * BALL_RADIUS);
     }
 
     void ApplyRotation(double dt);

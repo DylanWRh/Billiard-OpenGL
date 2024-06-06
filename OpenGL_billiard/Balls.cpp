@@ -306,6 +306,10 @@ bool Balls::update(const Table& table, double delta_t) {
                     balls[j].m_velocity.y = v1y - balls[i].m_velocity.y + v2y;
                     balls[j].m_velocity.x = v2x + a * (balls[j].m_velocity.y - v2y);
                 }
+
+                //balls[i].m_velocity += Vector2(dspeed_i.x, dspeed_i.z);
+                //balls[j].m_velocity += Vector2(dspeed_j.x, dspeed_j.z);
+
                 balls[i].m_position.x = mid_x + BALL_RADIUS * dx / dis;
                 balls[i].m_position.y = mid_y + BALL_RADIUS * dy / dis;
                 balls[j].m_position.x = mid_x - BALL_RADIUS * dx / dis;
@@ -351,6 +355,19 @@ bool Balls::update(const Table& table, double delta_t) {
 
                 // 将球的速度反向并保持大小不变
                 balls[i].m_velocity = Vector2(cos(reflection_angle), sin(reflection_angle)) * balls[i].m_velocity.Length2D();
+
+                Vector2 vp = balls[i].m_velocity.Proj(edge_vector);
+                Vector3 speed3D = balls[i].PerimeterSpeed(Vector3(correction_direction.x, 0.0, correction_direction.y));
+                Vector2 dspeed2D = Vector2(speed3D.x + vp.x, speed3D.z + vp.y);
+
+                double scale = balls[i].m_velocity.Proj(edge_normal).Length2D() * game_physics::MuBall;
+                if (scale > 1)
+                    scale = 1;
+
+                Vector3 dspeed3D = Vector3(dspeed2D.x * -scale, speed3D.y * -scale, dspeed2D.y * -scale);
+
+                balls[i].m_angular_velocity = (speed3D + dspeed3D).Cross(Vector3(correction_direction.x, 0.0, correction_direction.y) / -BALL_RADIUS);
+                balls[i].m_velocity += Vector2(dspeed3D.x, dspeed3D.z) * game_physics::MuWall;
 
                 PLAY_NOISE(wall_sound, (int)options_snd_volume * abs(edge_normal.Dot2D(balls[i].m_velocity)) * 0.5f);
             }
