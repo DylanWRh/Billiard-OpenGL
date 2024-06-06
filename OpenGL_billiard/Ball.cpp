@@ -46,6 +46,7 @@ void Ball::render() const{
 	for (const auto& face : sphere.faces) {
 		// 决定这个面的颜色
 		bool iswhite = false;
+		bool iscueRed = false;
 		// 如果是双色球，面法向与主轴夹角余弦大于一个阈值，设为白色
 		if (m_type == DOUBLE_C) {
 			const Vector3& p1 = sphere.vertices[face[0]];
@@ -57,11 +58,36 @@ void Ball::render() const{
 				iswhite = true;
 			}
 		}
+		// 如果是母球，表面设置若干红点
+		else if (m_type == CUE) {
+			const Vector3& p1 = sphere.vertices[face[0]];
+			const Vector3& p2 = sphere.vertices[face[1]];
+			const Vector3& p3 = sphere.vertices[face[2]];
+
+			if (
+				(abs(p1.Dot3D(main_axis)) > 0.98) || 
+				(abs(p2.Dot3D(main_axis)) > 0.98) ||
+				(abs(p3.Dot3D(main_axis)) > 0.98) 
+			) {
+				iscueRed = true;
+			}
+		}
 
 		// 设置面的颜色
 		if (iswhite) {
 			GLfloat mat_ambient[] = { 0.9f, 0.9f, 0.9f, 0.8f };
 			GLfloat mat_diffuse[] = { 0.9f, 0.9f, 0.9f, 0.8f };
+			GLfloat mat_specular[] = { 1.0f, 1.0f, 1.0f, 0.8f };
+			GLfloat high_shininess[] = { 35.0f };
+
+			glMaterialfv(GL_FRONT, GL_AMBIENT, mat_ambient);
+			glMaterialfv(GL_FRONT, GL_DIFFUSE, mat_diffuse);
+			glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specular);
+			glMaterialfv(GL_FRONT, GL_SHININESS, high_shininess);
+		}
+		else if (iscueRed) {
+			GLfloat mat_ambient[] = { 0.9f, 0.0f, 0.0f, 0.8f };
+			GLfloat mat_diffuse[] = { 0.9f, 0.0f, 0.0f, 0.8f };
 			GLfloat mat_specular[] = { 1.0f, 1.0f, 1.0f, 0.8f };
 			GLfloat high_shininess[] = { 35.0f };
 

@@ -39,6 +39,7 @@ public:
     // 游戏内容
     Table table;
     Balls balls;
+    Vector3 cueSide;    // 母球加塞
 
     // 与时间相关的变量
     GameWorldTime worldTime;

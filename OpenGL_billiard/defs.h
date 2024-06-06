@@ -25,8 +25,9 @@ constexpr float Y_BALL = Y_PLANE + (float)BALL_RADIUS;
 
 // 最大击球时球速
 constexpr float VEL_MAX = 16.0f;
-// 击球时初速度与鼠标-母球距离的正比系数
+// 击球时初速度和角速度与鼠标-母球距离的正比系数
 constexpr float CUE_FORCE_RATE = 3.0f;
+constexpr float CUE_ANGULAR_RATE = 6.0f;
 
 // TODO
 constexpr int BALLSINIT_OK = 0;

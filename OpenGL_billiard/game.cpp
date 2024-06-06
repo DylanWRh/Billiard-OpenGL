@@ -61,7 +61,7 @@ bool Game::initGame() {
     cur_player = 0;
     balls.first_hit_pos = balls.cue_pos;
     balls.goals.clear();
-
+    cueSide = Vector3(0, 0, 0);
 
 
     return true;
@@ -320,8 +320,9 @@ void Game::updateState() {
     //    }
     //}
     
-    // 当前击球结束后，更新玩家状态，并判断游戏是否结束
+    // 当前击球结束后，调整加塞为0，更新玩家状态，并判断游戏是否结束
     if (gameState == GAME_JUDGING) {
+        cueSide = Vector3(0, 0, 1);
         winner = judge();
         if (winner) {
             gameState = GAME_OVER;
@@ -336,11 +337,22 @@ void Game::mouse_click() {
     if (gameState == GAME_RUN_STATIC) {
         for (auto& ball : balls.balls) {
             if (ball.m_type == Ball::CUE) {
+                // 设置速度
                 ball.m_velocity = (mouse_pos - ball.m_position) * CUE_FORCE_RATE;
                 if (ball.m_velocity.Length2D() > VEL_MAX) {
                     ball.m_velocity.Normalize();
                     ball.m_velocity = ball.m_velocity * VEL_MAX;
                 }
+
+                // 设置角速度
+                float alpha = atan2(ball.m_velocity.y, ball.m_velocity.x);
+                ball.m_angular_velocity = Vector3(
+                    cueSide.y * sin(alpha),
+                    cueSide.x,
+                    -cueSide.y * cos(alpha)
+                ) * ball.m_velocity.Length2D() * CUE_ANGULAR_RATE;
+
+
                 PLAY_NOISE(cue_sound, (int)options_snd_volume * ball.m_velocity.Length2D());
                 return;
             }
