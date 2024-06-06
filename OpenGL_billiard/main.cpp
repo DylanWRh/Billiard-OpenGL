@@ -156,16 +156,36 @@ void display(void)
     glLoadIdentity();
     
     // 显示当前玩家以及应该击打的球
-    glColor3f(1.0, 1.0, 1.0);
+    glColor3f(1.0f, 1.0f, 1.0f);
     if (g.cur_player == 0) {
-        renderBoldStrokeString(-5.5f, 3.9f, 0.005f, "Player 1", 3.0);
-        draw_circle(Vector2(5, 4), 0.5, 1.0, 0.0, 0.0);
+        renderBoldStrokeString(-5.5f, 3.8f, 0.005f, "Player 1", 2.0f);
+        draw_circle(Vector2(5, 4), 0.5f, 1.0f, 0.0f, 0.0f);
     }
     else {
-        renderBoldStrokeString(-5.5f, 3.9f, 0.005f, "Player 2", 3.0);
-        draw_circle(Vector2(5, 4), 0.25, 1.0, 1.0, 1.0);
-        draw_circle(Vector2(5, 4), 0.5, 1.0, 0.0, 0.0);
-        
+        renderBoldStrokeString(-5.5f, 3.8f, 0.005f, "Player 2", 2.0f);
+        draw_circle(Vector2(5, 4), 0.25f, 1.0f, 1.0f, 1.0f);
+        draw_circle(Vector2(5, 4), 0.5f, 1.0f, 0.0f, 0.0f);
+    }
+
+    // 显示出杆力度
+    glColor3f(1.0f, 1.0f, 1.0f);
+    glBegin(GL_LINE_LOOP);
+    glVertex2f(-2.5, 3.8);
+    glVertex2f(3.5, 3.8);
+    glVertex2f(3.5, 4.2);
+    glVertex2f(-2.5, 4.2);
+    glEnd();
+    if (g.gameState == Game::GAME_RUN_STATIC) {
+        float force = (g.mouse_pos - g.balls.balls[g.balls.cue_pos].m_position).Length2D() * CUE_FORCE_RATE;
+        if (force > VEL_MAX) force = VEL_MAX;
+        float force_render_x = -2.5 + (force / VEL_MAX) * 6;
+        glColor3f(1.0f, 1.0f, 1.0f);
+        glBegin(GL_QUADS);
+        glVertex2f(-2.5, 3.8);
+        glVertex2f(force_render_x, 3.8);
+        glVertex2f(force_render_x, 4.2);
+        glVertex2f(-2.5, 4.2);
+        glEnd();   
     }
 
     // 显示游戏结束的文字
