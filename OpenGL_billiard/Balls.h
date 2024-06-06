@@ -16,7 +16,7 @@ public:
 	int cue_pos = -1;
 	int black_pos = -1;
 	int first_hit_pos = -1;
-	std::vector<int> goals{};
+	std::vector<int> goals{};	// 这次出杆进的球
 
 	Balls() {};
 	Balls(const Vector2& white_position, const Vector2& center_of_triangle);
