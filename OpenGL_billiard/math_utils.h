@@ -30,6 +30,7 @@ struct Vector3
     double DistTo(Vector3 v) const { return (*this - v).Length(); }
     double Dist2D(Vector3 v) const { return (*this - v).Length2D(); }
     double Dot3D(Vector3 v) const { return v.x * x + v.y * y + v.z * z; }
+    Vector3 Cross(Vector3 v) const { return { y * v.z - z * v.y, z * v.x - x * v.z, x * v.y - y * v.x }; }
 };
 
 struct Vector2

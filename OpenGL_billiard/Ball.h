@@ -15,8 +15,6 @@ public:
     };
     typedef Vector3 BallColor;
     bool m_inHole;
-    // Mass [kg]
-    double mass;
     Vector2 m_position;
     Vector2 m_velocity;
     Vector3 m_angular_velocity;
@@ -33,6 +31,25 @@ public:
         const Vector3& color,
         const BallType& type
     );
+
+    /// <summary>
+    /// 计算与球台接触点的线速度（球心指向球台的向量，n = Vector3(0.0, -BALL_RADIUS, 0.0) ）
+    /// </summary>
+    /// <returns>相对于球心的线速度</returns>
+    Vector3 PerimeterSpeed() const noexcept
+    {
+        return m_angular_velocity.Cross(Vector3{ 0.0, -BALL_RADIUS, 0.0 });
+    }
+
+    /// <summary>
+    /// 计算与某个接触点的线速度
+    /// </summary>
+    /// <param name="normal">球心指向与本球接触点的方向单位向量</param>
+    /// <returns>相对于球心的线速度</returns>
+    Vector3 PerimeterSpeed(const Vector3& normal) const noexcept
+    {
+        return m_angular_velocity.Cross(normal * -BALL_RADIUS);
+    }
 
     void ApplyRotation(double dt);
 

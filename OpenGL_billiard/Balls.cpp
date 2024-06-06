@@ -145,6 +145,41 @@ bool Balls::update(const Table& table, double delta_t) {
             isMoving = true;
         }
         ball.m_position += ball.m_velocity * delta_t;
+
+        // 计算球面与桌面接触点的线速度
+        Vector3 uspeed = ball.PerimeterSpeed();     // 球心坐标（3D，轴方向与世界坐标相同）的线速度
+        Vector2 uspeed_eff = Vector2(uspeed.x, uspeed.z) + ball.m_velocity;     // 2D桌面的线速度
+
+        // 滑动
+        if (uspeed_eff.Length2D() > game_physics::SlideThreshSpeed) {
+            // 由摩擦力产生的线速度的加速度
+            Vector2 uspeed_eff_norm = uspeed_eff / uspeed_eff.Length2D();
+            Vector2 fricaccel = uspeed_eff_norm * -(game_physics::MuSlide * game_physics::Gravity);     // a = ug
+
+            // 计算角加速度
+            Vector3 fricaccel3D(fricaccel.x, 0.0f, fricaccel.y);
+            Vector3 fricmom = fricaccel3D.Cross(Vector3{ 0.0, -BALL_RADIUS, 0.0 }) * game_physics::BallMass;    // r X (ma)
+            Vector3 waccel = fricmom / -game_physics::IBall;
+
+            // perform accel
+            ball.m_angular_velocity += waccel * delta_t;
+            ball.m_velocity += fricaccel * delta_t;
+            Vector uspeed2 = ball->PerimeterSpeed();
+            Vector uspeed_eff2 = uspeed2 + ball->velocity;
+
+            // if uspeed_eff passes 0
+            scalar_t uspeed_eff_par = uspeed_eff.Dot(uspeed_eff - uspeed_eff2);
+            scalar_t uspeed_eff2_par = uspeed_eff2.Dot(uspeed_eff - uspeed_eff2);
+
+            if (Vector::ZERO().NDist2(uspeed_eff, uspeed_eff2) <= SlideThreshSpeed &&
+                ((uspeed_eff_par > scalar_t(0) && uspeed_eff2_par < scalar_t(0)) || (uspeed_eff2_par > scalar_t(0) && uspeed_eff_par < scalar_t(0)))
+                ) {
+                // make rolling if uspeed_eff passed 0
+                ball->velocity = ball->angularVelocity.Cross(Vector{ scalar_t(0), scalar_t(0), ball->radius });
+            }
+        }
+
+        // 旋转
     }
     // 判断是否有球飞出界外
     // TODO: 可以写成直接起飞，也可以尝试实现更细粒度的迭代求解
