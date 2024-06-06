@@ -18,7 +18,7 @@ constexpr GLdouble G_EPS = 1e-6;
 // 台面参数
 constexpr float Y_PLANE = 1.0f;       // 台面高度
 constexpr float Y_CUSHION = 1.3f;     // 库边高度
-constexpr float Y_LOW = 0.0f;         // 底面高度
+constexpr float Y_LOW = -2.0f;         // 底面高度
 // 渲染球时的分割迭代次数
 constexpr int SUBDIVIDE_TETRA = 4;
 constexpr float Y_BALL = Y_PLANE + (float)BALL_RADIUS;

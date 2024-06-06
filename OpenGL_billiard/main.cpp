@@ -87,10 +87,10 @@ void myGLinit() {
     glEnable(GL_NORMALIZE);     // 启用法向量归一化
 
     // 设置环境光照参数
-    GLfloat light_ambient[] = { 1.0, 1.0, 1.0, 1.0 };  // 环境光为白光
+    GLfloat light_ambient[] = { 0.3, 0.3, 0.3, 1.0 };  // 环境光为白光
     GLfloat light_diffuse[] = { 1.0, 1.0, 1.0, 1.0 };  // 漫反射光为白光
     GLfloat light_specular[] = { 1.0, 1.0, 1.0, 1.0 }; // 镜面反射光为白光
-    GLfloat light_position[] = { 0.0, 10.0, 0.0, 0.0 }; // 光源位置
+    GLfloat light_position[] = { 3.0, 3.0, 0.0, 0.0 }; // 光源位置
     glLightfv(GL_LIGHT0, GL_AMBIENT, light_ambient);
     glLightfv(GL_LIGHT0, GL_DIFFUSE, light_diffuse);
     glLightfv(GL_LIGHT0, GL_SPECULAR, light_specular);

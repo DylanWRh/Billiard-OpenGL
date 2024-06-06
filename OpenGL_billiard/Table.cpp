@@ -117,7 +117,7 @@ void Table::render() {
     // float y_low = 0.0f;         // 底面高度
 
     // 绘制台面
-    glColor3f(0, 1.0, 0);       // 绿色
+    glColor3f(0, 0.7, 0);       // 绿色
     glBegin(GL_TRIANGLES);
     for (int i = 0; i < n_corners; ++i) {
         glVertex3f(
@@ -134,16 +134,18 @@ void Table::render() {
     }
     glEnd();
 
-    // 添加一个完全透明的大平面，便于鼠标交互
+    // 添加大平面，便于鼠标交互
     glEnable(GL_BLEND);
+    glDepthMask(GL_FALSE);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glColor4f(1.0, 1.0, 1.0, 0.0);
+    glColor4f(0.0f, 0.0f, 0.0f, 0.0f);
     glBegin(GL_QUADS);
-    glVertex3f(100, Y_PLANE, 100);
-    glVertex3f(-100, Y_PLANE, 100);
-    glVertex3f(-100, Y_PLANE, -100);
-    glVertex3f(100, Y_PLANE, -100);
+    glVertex3f(-20, Y_PLANE, -20);
+    glVertex3f(20, Y_PLANE, -20);
+    glVertex3f(20, Y_PLANE, 20);
+    glVertex3f(-20, Y_PLANE, 20);
     glEnd();
+    glDepthMask(GL_TRUE);
     glDisable(GL_BLEND);
 
     // 绘制库边
