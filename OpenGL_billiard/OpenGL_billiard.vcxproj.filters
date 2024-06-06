@@ -51,6 +51,24 @@
     <ClCompile Include="Sphere.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="rawdata\ballinhole.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="rawdata\balloutoftable.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="rawdata\ball_ball.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="rawdata\oneballontable.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="rawdata\shuffleballs.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="sound_stuff.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="game.h">
@@ -78,6 +96,12 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="Sphere.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="sound_raw_data.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="sound_stuff.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

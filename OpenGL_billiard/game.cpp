@@ -336,7 +336,7 @@ void Game::mouse_click() {
     if (gameState == GAME_RUN_STATIC) {
         for (auto& ball : balls.balls) {
             if (ball.m_type == Ball::CUE) {
-                ball.m_velocity = (mouse_pos - ball.m_position) * 4;
+                ball.m_velocity = (mouse_pos - ball.m_position) * CUE_FORCE_RATE;
                 if (ball.m_velocity.Length2D() > VEL_MAX) {
                     ball.m_velocity.Normalize();
                     ball.m_velocity = ball.m_velocity * VEL_MAX;
