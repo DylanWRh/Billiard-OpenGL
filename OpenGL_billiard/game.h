@@ -47,6 +47,10 @@ public:
 
     // 与交互和渲染相关的变量
     bool mouse_clicked = false;
+
+    /// <summary>
+    /// 鼠标在世界坐标中的位置
+    /// </summary>
     Vector2 mouse_pos;
 
     // 构造函数
@@ -57,9 +61,23 @@ public:
     Game(const Table& table_, const Balls& balls_);
 
     // 游戏过程
+
+    /// <summary>
+    /// 初始化球桌，球以及球员状态
+    /// </summary>
+    /// <returns>true为初始化成功</returns>
     bool initGame();
+
+    /// <summary>
+    /// 更新球的位置，并判断对局状态
+    /// </summary>
     void updateState();
+
+    /// <summary>
+    /// 处理鼠标点击发生时的逻辑，例如放置母球与击打母球
+    /// </summary>
     void mouse_click();
+
     /// <summary>
     /// 判断游戏是否结束
     /// </summary>

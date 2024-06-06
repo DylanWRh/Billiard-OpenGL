@@ -1,6 +1,7 @@
 //#include <glad/glad.h>
 //#include <GLFW/glfw3.h>
 #include <iostream>
+#include <GL/glew.h>
 #ifdef __APPLE__
 #include <GLUT/glut.h>
 #else
@@ -15,6 +16,7 @@
 #include "game.h"
 #include "math_utils.h"
 #include "render_utils.h"
+#include "sound_stuff.h"
 
 
 static Game g;
@@ -47,21 +49,24 @@ void idle(void);
 void myReshape(int w, int h);
 
 // 鼠标移动检测
-void mouseMotion(int x, int y);
+void fnMouseMotion(int x, int y);
 
 // 鼠标点击函数
-void mouseClick(int button, int state, int x, int y);
+void fnMouseClick(int button, int state, int x, int y);
 
 // 键盘响应函数
-void specialKeys(int key, int x, int y);
+void fnSpecialKeys(int key, int x, int y);
 
 int main(int argc, char** argv)
 {
     // 基础设置
     glutInit(&argc, argv);
-    glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
+    glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH | GLUT_MULTISAMPLE);
     glutInitWindowSize(WIN_WIDTH, WIN_HEIGHT);
     glutCreateWindow("Billiard");
+
+    // 初始化声音
+    init_sound();
 
     // OpenGL相关设置
     myGLinit();
@@ -73,10 +78,12 @@ int main(int argc, char** argv)
     glutReshapeFunc(myReshape);
     glutDisplayFunc(display);
     glutIdleFunc(idle);
-    glutPassiveMotionFunc(mouseMotion);
-    glutMouseFunc(mouseClick);
-    glutSpecialFunc(specialKeys);
+    glutPassiveMotionFunc(fnMouseMotion);
+    glutMouseFunc(fnMouseClick);
+    glutSpecialFunc(fnSpecialKeys);
     glutMainLoop();
+
+    return 0;
 }
 
 void myGLinit() {
@@ -85,6 +92,7 @@ void myGLinit() {
     glEnable(GL_LIGHTING);      // 启用光照计算
     glEnable(GL_LIGHT0);        // 启用第一个光源
     glEnable(GL_NORMALIZE);     // 启用法向量归一化
+    glEnable(GL_MULTISAMPLE);   // 启用多重采样
 
     // 设置环境光照参数
     GLfloat light_ambient[] = { 0.3, 0.3, 0.3, 1.0 };  // 环境光为白光
@@ -195,7 +203,7 @@ void myReshape(int w, int h)
     glutPostRedisplay();
 }
 
-void mouseMotion(int x, int y) {
+void fnMouseMotion(int x, int y) {
     GLint viewport[4];
     GLdouble modelview[16];
     GLdouble projection[16];
@@ -223,7 +231,7 @@ void mouseMotion(int x, int y) {
     */
 }
 
-void mouseClick(int button, int state, int x, int y) {
+void fnMouseClick(int button, int state, int x, int y) {
     if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
         g.mouse_click();
     }
@@ -240,7 +248,7 @@ void mouseClick(int button, int state, int x, int y) {
     }
 }
 
-void specialKeys(int key, int x, int y) {
+void fnSpecialKeys(int key, int x, int y) {
     float angleStep = 5.0f;
 
     switch (key) {

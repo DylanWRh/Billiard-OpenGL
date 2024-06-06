@@ -25,7 +25,11 @@ Ball::Ball(
 		getRandomDouble(0, 1)
 	);
 	main_axis.Normalize();
-};
+}
+
+void Ball::ApplyRotation(double dt)
+{
+}
 
 Sphere Ball::sphere(SUBDIVIDE_TETRA);
 

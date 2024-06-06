@@ -15,8 +15,11 @@ public:
     };
     typedef Vector3 BallColor;
     bool m_inHole;
+    // Mass [kg]
+    double mass;
     Vector2 m_position;
     Vector2 m_velocity;
+    Vector3 m_angular_velocity;
     BallType m_type;
 
     // ‰÷»æœ‡πÿ
@@ -30,6 +33,8 @@ public:
         const Vector3& color,
         const BallType& type
     );
+
+    void ApplyRotation(double dt);
 
     void render() const;
 };

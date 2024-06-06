@@ -2,6 +2,7 @@
 #include "math_utils.h"
 #include "render_utils.h"
 #include "utils.h"
+#include "sound_stuff.h"
 #include <vector>
 
 constexpr double FRAC_0 = 1;
@@ -174,6 +175,7 @@ bool Balls::update(const Table& table, double delta_t) {
             double mid_y = (balls[i].m_position.y + balls[j].m_position.y) * 0.5;
             if (dis < 2 * BALL_RADIUS) {
                 DebugMsg("发生球-球碰撞：\t 碰撞的球：(%lld, %lld)", i, j);
+                Vector2 old_dv = balls[i].m_velocity - balls[j].m_velocity;
                 // 设置第一个被母球碰到的球的信息
                 if (first_hit_pos == cue_pos) {
                     if (i == cue_pos) { first_hit_pos = (int)j; }
@@ -215,6 +217,7 @@ bool Balls::update(const Table& table, double delta_t) {
                 balls[i].m_position.y = mid_y + BALL_RADIUS * dy / dis;
                 balls[j].m_position.x = mid_x - BALL_RADIUS * dx / dis;
                 balls[j].m_position.y = mid_y - BALL_RADIUS * dy / dis;
+                PLAY_NOISE(ball_sound, (int)options_snd_volume * (old_dv - (balls[i].m_velocity - balls[j].m_velocity)).Length2D());
             }
         }
         // ball-table
@@ -255,6 +258,8 @@ bool Balls::update(const Table& table, double delta_t) {
 
                 // 将球的速度反向并保持大小不变
                 balls[i].m_velocity = Vector2(cos(reflection_angle), sin(reflection_angle)) * balls[i].m_velocity.Length2D();
+
+                PLAY_NOISE(wall_sound, (int)options_snd_volume * abs(edge_normal.Dot2D(balls[i].m_velocity)) * 0.5f);
             }
         }
     }
@@ -267,6 +272,7 @@ bool Balls::update(const Table& table, double delta_t) {
                 DebugMsg("球落入袋口");
                 balls[i].m_inHole = true;
                 goals.push_back(i);
+                PLAY_NOISE(ball_hole, 64);
                 break;
             }
         }

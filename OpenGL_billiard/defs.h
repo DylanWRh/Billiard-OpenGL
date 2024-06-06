@@ -31,3 +31,6 @@ constexpr int BALLSINIT_OK = 0;
 constexpr int BALLSINIT_INVALID_WHITE = 1;
 constexpr int BALLSINIT_INVALID_CENTER = 2;
 constexpr int BALLSINIT_INVALID_DISTENCE = 3;
+
+// …˘“Ù
+constexpr int options_snd_volume = 5;

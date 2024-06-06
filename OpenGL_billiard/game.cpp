@@ -5,6 +5,7 @@
 #include "utils.h"
 #include "math_utils.h"
 #include "render_utils.h"
+#include "sound_stuff.h"
 
 #include <math.h>
 #include <chrono>
@@ -47,6 +48,7 @@ bool Game::initGame() {
         puts("初始化球位置失败");
         return false;
     }
+    PLAY_NOISE(wave_shuffle, 64);
 
     // 初始化游戏状态
     gameState = GAME_RUN_STATIC;
@@ -339,6 +341,7 @@ void Game::mouse_click() {
                     ball.m_velocity.Normalize();
                     ball.m_velocity = ball.m_velocity * VEL_MAX;
                 }
+                PLAY_NOISE(cue_sound, (int)options_snd_volume * ball.m_velocity.Length2D());
                 return;
             }
         }
@@ -361,6 +364,7 @@ void Game::mouse_click() {
         balls.balls[balls.cue_pos].m_position = mouse_pos;
         balls.balls[balls.cue_pos].m_velocity = Vector2(0, 0);
         gameState = GAME_RUN_STATIC;
+        PLAY_NOISE(wave_oneball, 64);
         return;
     }
 }
