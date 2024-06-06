@@ -24,7 +24,7 @@ constexpr int SUBDIVIDE_TETRA = 4;
 constexpr float Y_BALL = Y_PLANE + (float)BALL_RADIUS;
 
 // 最大击球时球速
-constexpr float VEL_MAX = 23.0f;
+constexpr float VEL_MAX = 16.0f;
 // 击球时初速度与鼠标-母球距离的正比系数
 constexpr float CUE_FORCE_RATE = 3.0f;
 
@@ -46,16 +46,16 @@ namespace game_physics {
 	// m/s^2
 	constexpr double Gravity = 9.8;
 	// Table roll-friction
-	constexpr double MuRoll = 0.1;
+	constexpr double MuRoll = 0.15;
 	// Table slide-friction
-	constexpr double MuSlide = 0.1;
+	constexpr double MuSlide = 0.65;
 	// Friction const between ball and ball
 	constexpr double MuBall = 0.1;
 	// 球的转动惯量
 	constexpr double IBall = (2.0 * BallMass * BALL_RADIUS * BALL_RADIUS) / 5.0;
 
 	// m/s
-	constexpr double SlideThreshSpeed = G_EPS;
+	constexpr double SlideThreshSpeed = 0.01;
 	// Ball spin deceleration rate
-	constexpr double SpotR = 0.1;
+	constexpr double SpotR = 0.8;
 }

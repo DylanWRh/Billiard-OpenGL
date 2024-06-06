@@ -25,12 +25,38 @@ struct Vector3
     double& operator[](int idx) { return *(&x + idx); }
     double operator[](int idx) const { return *(&x + idx); }
     void Normalize() { double norm = Length(); x /= norm; y /= norm; z /= norm; }
+    // Normalize
+    Vector3 Unit() const noexcept
+    {
+        double l = Length();
+        return (l != 0.0) ? Vector3 {x / l, y / l, z / l} : Vector3{ 0.0, 0.0, 0.0 };
+    }
     double Length() const { return sqrt(x * x + y * y + z * z); }
+    double LengthSqr() const { return x * x + y * y + z * z; }
     double Length2D() const { return sqrt(x * x + y * y); }
     double DistTo(Vector3 v) const { return (*this - v).Length(); }
     double Dist2D(Vector3 v) const { return (*this - v).Length2D(); }
     double Dot3D(Vector3 v) const { return v.x * x + v.y * y + v.z * z; }
     Vector3 Cross(Vector3 v) const { return { y * v.z - z * v.y, z * v.x - x * v.z, x * v.y - y * v.x }; }
+    Vector3 Proj(const Vector3& rhs) const noexcept
+    {
+        double v2ls = rhs.Dot3D(rhs);
+        return (v2ls != 0.0) ? rhs * (Dot3D(rhs) / v2ls) : Vector3{ x, y, z };
+    }
+    Vector3 NComp(const Vector3& rhs) const noexcept
+    {
+        return *this - Proj(rhs);
+    }
+    // Normal distance to line(v1,v2)
+    double NDist(const Vector3& v1, const Vector3& v2) const noexcept
+    {
+        return (*this - v1).NComp(v2 - v1).Length();
+    }
+    // Normal square distance to line(v1,v2)
+    double NDist2(const Vector3& v1, const Vector3& v2) const noexcept
+    {
+        return (*this - v1).NComp(v2 - v1).LengthSqr();
+    }
 };
 
 struct Vector2
@@ -49,9 +75,35 @@ struct Vector2
     double operator[](int idx) const { return *(&x + idx); }
     bool operator!=(Vector2 v) const { return x != v.x || y != v.y; }
     void Normalize() { double norm = Length2D(); x /= norm; y /= norm; }
+    // Normalize
+    Vector2 Unit() const noexcept
+    {
+        double l = Length2D();
+        return (l != 0.0) ? Vector2 {x / l, y / l} : Vector2{ 0.0, 0.0 };
+    }
     double Length2D() const { return sqrt(x * x + y * y); }
+    double LengthSqr() const { return x * x + y * y; }
     double Dist2D(Vector2 v) const { return (*this - v).Length2D(); }
     double Dot2D(Vector2 v) const { return v.x * x + v.y * y; }
+    Vector2 Proj(const Vector2& rhs) const noexcept
+    {
+        double v2ls = rhs.Dot2D(rhs);
+        return (v2ls != 0.0) ? rhs * (Dot2D(rhs) / v2ls) : Vector2{ x, y };
+    }
+    Vector2 NComp(const Vector2& rhs) const noexcept
+    {
+        return *this - Proj(rhs);
+    }
+    // Normal distance to line(v1,v2)
+    double NDist(const Vector2& v1, const Vector2& v2) const noexcept
+    {
+        return (*this - v1).NComp(v2 - v1).Length2D();
+    }
+    // Normal square distance to line(v1,v2)
+    double NDist2(const Vector2& v1, const Vector2& v2) const noexcept
+    {
+        return (*this - v1).NComp(v2 - v1).LengthSqr();
+    }
 };
 
 /// <summary>

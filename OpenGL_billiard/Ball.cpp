@@ -29,6 +29,8 @@ Ball::Ball(
 
 void Ball::ApplyRotation(double dt)
 {
+	main_axis += m_angular_velocity.Cross(main_axis) * dt;
+	main_axis.Normalize();
 }
 
 Sphere Ball::sphere(SUBDIVIDE_TETRA);

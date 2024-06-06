@@ -134,17 +134,17 @@ bool Balls::update(const Table& table, double delta_t) {
     for (auto& ball : temp_balls_calcmoving) {
         if (ball.m_inHole)
             continue;
-        double v = ball.m_velocity.Length2D();
-        if (v < delta_v || v < G_EPS) {
-            ball.m_position += (ball.m_velocity * v) / (2 * FRAC_0);
-            ball.m_velocity = Vector2(0.0, 0.0);
-        }
-        else {
-            Vector2 dv = (ball.m_velocity / v) * delta_v;
-            ball.m_velocity = ball.m_velocity * (1 - FRAC_1 * delta_t) - dv;
-            isMoving = true;
-        }
-        ball.m_position += ball.m_velocity * delta_t;
+        //double v = ball.m_velocity.Length2D();
+        //if (v < delta_v || v < G_EPS) {
+        //    ball.m_position += (ball.m_velocity * v) / (2 * FRAC_0);
+        //    ball.m_velocity = Vector2(0.0, 0.0);
+        //}
+        //else {
+        //    Vector2 dv = (ball.m_velocity / v) * delta_v;
+        //    ball.m_velocity = ball.m_velocity * (1 - FRAC_1 * delta_t) - dv;
+        //    isMoving = true;
+        //}
+        //ball.m_position += ball.m_velocity * delta_t;
 
         // 计算球面与桌面接触点的线速度
         Vector3 uspeed = ball.PerimeterSpeed();     // 球心坐标（3D，轴方向与世界坐标相同）的线速度
@@ -164,22 +164,57 @@ bool Balls::update(const Table& table, double delta_t) {
             // perform accel
             ball.m_angular_velocity += waccel * delta_t;
             ball.m_velocity += fricaccel * delta_t;
-            Vector uspeed2 = ball->PerimeterSpeed();
-            Vector uspeed_eff2 = uspeed2 + ball->velocity;
+            Vector3 uspeed2 = ball.PerimeterSpeed();
+            Vector2 uspeed_eff2 = Vector2(uspeed.x, uspeed.z) + ball.m_velocity;
 
             // if uspeed_eff passes 0
-            scalar_t uspeed_eff_par = uspeed_eff.Dot(uspeed_eff - uspeed_eff2);
-            scalar_t uspeed_eff2_par = uspeed_eff2.Dot(uspeed_eff - uspeed_eff2);
+            double uspeed_eff_par = uspeed_eff.Dot2D(uspeed_eff - uspeed_eff2);
+            double uspeed_eff2_par = uspeed_eff2.Dot2D(uspeed_eff - uspeed_eff2);
 
-            if (Vector::ZERO().NDist2(uspeed_eff, uspeed_eff2) <= SlideThreshSpeed &&
-                ((uspeed_eff_par > scalar_t(0) && uspeed_eff2_par < scalar_t(0)) || (uspeed_eff2_par > scalar_t(0) && uspeed_eff_par < scalar_t(0)))
+            if (Vector2().NDist2(uspeed_eff, uspeed_eff2) <= game_physics::SlideThreshSpeed &&
+                ((uspeed_eff_par > 0.0f && uspeed_eff2_par < 0.0f) || (uspeed_eff2_par > 0.0f && uspeed_eff_par < 0.0f))
                 ) {
                 // make rolling if uspeed_eff passed 0
-                ball->velocity = ball->angularVelocity.Cross(Vector{ scalar_t(0), scalar_t(0), ball->radius });
+                Vector3 velocity3D = ball.m_angular_velocity.Cross(Vector3{ 0, BALL_RADIUS, 0 });
+                ball.m_velocity = Vector2(velocity3D.x, velocity3D.z);
             }
         }
+        else {
+            Vector3 waccel;
+            {
+                double roll_mom_r = game_physics::MuRoll * game_physics::IBall / game_physics::BallMass / (2 * BALL_RADIUS);
+                Vector2 ball_v2D_norm = ball.m_velocity.Unit();
+                Vector3 ball_v3D_norm = Vector3(ball_v2D_norm.x, 0.0, ball_v2D_norm.y);
+                Vector3 rollmom = Vector3{ 0.0, game_physics::BallMass * game_physics::Gravity * roll_mom_r, 0.0 }.Cross(ball_v3D_norm);
+                waccel = rollmom / -game_physics::IBall;
 
-        // 旋转
+                // Spin deceleration rate
+                waccel.y = game_physics::SpotR * double(int(ball.m_angular_velocity.y < 0.0) - int(0.0 < ball.m_angular_velocity.y));
+
+                waccel = waccel * delta_t;
+                if (waccel.y * waccel.y > ball.m_angular_velocity.y * ball.m_angular_velocity.y) {
+                    waccel.y = -ball.m_angular_velocity.y;
+                }
+            }
+            double ws = ball.m_angular_velocity.LengthSqr();
+
+            ball.m_angular_velocity += waccel;
+
+            // Rolling on a flat surface should never cause angular velocity to increase,
+            // so if waccel increased the angular velocity (due to gravity force being used), it's time to zero.
+            if (ball.m_angular_velocity.LengthSqr() > ws) {
+                ball.m_angular_velocity = Vector3();
+            }
+
+            // Align velocity with angularVelocity to assure rolling
+            Vector3 ball_v3D = ball.m_angular_velocity.Cross(Vector3{ 0.0, BALL_RADIUS, 0.0 });
+            ball.m_velocity = Vector2(ball_v3D.x, ball_v3D.z);
+        }
+        ball.m_position += ball.m_velocity * delta_t;
+        if (ball.m_velocity.LengthSqr() > G_EPS * G_EPS || ball.m_angular_velocity.LengthSqr() > G_EPS * G_EPS) {
+            isMoving = true;
+        }
+        ball.ApplyRotation(delta_t);
     }
     // 判断是否有球飞出界外
     // TODO: 可以写成直接起飞，也可以尝试实现更细粒度的迭代求解
@@ -306,6 +341,8 @@ bool Balls::update(const Table& table, double delta_t) {
             if (balls[i].m_position.Dist2D(Vector2(hole.x, hole.y)) < HOLE_RADIUS) {
                 DebugMsg("球落入袋口");
                 balls[i].m_inHole = true;
+                balls[i].m_velocity = Vector2();
+                balls[i].m_angular_velocity = Vector3();
                 goals.push_back(i);
                 PLAY_NOISE(ball_hole, 64);
                 break;
