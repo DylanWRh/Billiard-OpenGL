@@ -228,28 +228,30 @@ void fnMouseClick(int button, int state, int x, int y) {
     if (isInScene(x, y)) {
         if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
             g.mouse_click();
-        }
-        if (g.gameState == Game::GAME_OVER) {
-            if (abs(x - 600) < 120 && abs(y - 650) < 40) {
-                if (g.winner == 1)
-                    player1_scores++;
-                else
-                    player2_scores++;
-                myinit();
+            if (g.gameState == Game::GAME_OVER) {
+                if (abs(x - 600) < 120 && abs(y - 650) < 40) {
+                    if (g.winner == 1)
+                        player1_scores++;
+                    else
+                        player2_scores++;
+                    myinit();
+                }
             }
         }
+
+        else if (button == GLUT_RIGHT_BUTTON && state == GLUT_DOWN) {
+            view_mode = 1 - view_mode;
+        }
+        else if (button == 3) { // 鼠标滚轮向上
+            distance -= 0.05f;
+            if (distance < 7.0f) distance = 7.0f;
+        }
+        else if (button == 4) { // 鼠标滚轮向下
+            distance += 0.05f;
+            if (distance > 20.0f) distance = 20.0f;
+        }
     }
-    else if (button == GLUT_RIGHT_BUTTON && state == GLUT_DOWN) {
-        view_mode = 1 - view_mode;
-    }
-    else if (button == 3) { // 鼠标滚轮向上
-        distance -= 0.05f;
-        if (distance < 7.0f) distance = 7.0f; 
-    }
-    else if (button == 4) { // 鼠标滚轮向下
-        distance += 0.05f;
-        if (distance > 20.0f) distance = 20.0f;
-    }
+    
 }
 
 void fnSpecialKeys(int key, int x, int y) {
