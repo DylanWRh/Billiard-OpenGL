@@ -8,7 +8,7 @@
 #include <GL/glut.h>
 #endif
 #include <thread>
-#include <iostream>
+
 #include "defs.h"
 #include "Table.h"
 #include "Balls.h"
@@ -52,6 +52,7 @@ void render2D(void);
 bool isInScene(int x, int y);
 
 // 调整加塞
+void fnSetSide(int x, int y);
 void setSide(int x, int y);
 
 // 空闲函数
@@ -91,7 +92,7 @@ int main(int argc, char** argv)
     glutDisplayFunc(display);
     glutIdleFunc(idle);
     glutPassiveMotionFunc(fnMouseMotion);
-    glutMotionFunc(fnMouseMotion);
+    glutMotionFunc(fnSetSide);
     glutMouseFunc(fnMouseClick);
     glutSpecialFunc(fnSpecialKeys);
     glutMainLoop();
@@ -178,12 +179,13 @@ void myReshape(int w, int h)
     glutPostRedisplay();
 }
 
-void fnMouseMotion(int x, int y) {
-    
+void fnSetSide(int x, int y) {
     if (mouse_down) {
         setSide(x, y);
     }
+}
 
+void fnMouseMotion(int x, int y) {
     GLint viewport[4];
     GLdouble modelview[16];
     GLdouble projection[16];
@@ -210,7 +212,7 @@ void fnMouseMotion(int x, int y) {
     以上是原先的2D版本
     */
 }
-
+#include <iostream>
 void fnMouseClick(int button, int state, int x, int y) {
     if (state == GLUT_DOWN) {
         mouse_down = true;
@@ -219,21 +221,21 @@ void fnMouseClick(int button, int state, int x, int y) {
         mouse_down = false;
     }
 
-    if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
-        if (!isInScene(x, y)) {
+    if (isInScene(x, y)) {
+        if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
             g.mouse_click();
         }
-    }
-    else if (button == GLUT_RIGHT_BUTTON && state == GLUT_DOWN) {
-        view_mode = 1 - view_mode;
-    }
-    else if (button == 3) { // 鼠标滚轮向上
-        distance -= 0.05f;
-        if (distance < 7.0f) distance = 7.0f; 
-    }
-    else if (button == 4) { // 鼠标滚轮向下
-        distance += 0.05f;
-        if (distance > 20.0f) distance = 20.0f;
+        else if (button == GLUT_RIGHT_BUTTON && state == GLUT_DOWN) {
+            view_mode = 1 - view_mode;
+        }
+        else if (button == 3) { // 鼠标滚轮向上
+            distance -= 0.05f;
+            if (distance < 7.0f) distance = 7.0f;
+        }
+        else if (button == 4) { // 鼠标滚轮向下
+            distance += 0.05f;
+            if (distance > 20.0f) distance = 20.0f;
+        }
     }
 }
 
@@ -342,7 +344,7 @@ void render2D(void) {
 }
 
 bool isInScene(int x, int y) {
-    return (y <= 200);
+    return (y > 200);
 }
 
 void setSide(int x, int y) {
