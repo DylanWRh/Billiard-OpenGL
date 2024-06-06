@@ -251,6 +251,29 @@ bool Balls::update(const Table& table, double delta_t) {
                     if (i == cue_pos) { first_hit_pos = (int)j; }
                     else if (j == cue_pos) { first_hit_pos = (int)i; }
                 }
+
+                // 对心碰撞速度
+                Vector2 r_vec = balls[i].m_position - balls[j].m_position;  // j指向i
+                Vector2 center_v = old_dv.Proj(r_vec);
+                Vector3 old_dv3D = Vector3(old_dv.x, 0.0, old_dv.y);
+                Vector3 center_v3D = Vector3(center_v.x, 0.0, center_v.y);
+                Vector2 r_vec_norm = r_vec.Unit();
+                Vector3 r_vec3D_norm = Vector3(r_vec_norm.x, 0.0, r_vec_norm.y);  // j指向i
+                Vector3 speed_i = balls[i].PerimeterSpeed(r_vec3D_norm * -1);
+                Vector3 speed_j = balls[j].PerimeterSpeed(r_vec3D_norm);
+                // 球i的接触面相对于j的接触面的运动速度
+                Vector3 dspeed = (speed_i - speed_j) + (old_dv3D - center_v3D);
+                Vector3 dspeed_norm = dspeed.Unit();
+
+                double scale = center_v.Length2D() * game_physics::MuBall;
+                if (scale > 0.5)
+                    scale = 0.5;
+
+                Vector3 dspeed_i = dspeed * -scale;
+                Vector3 dspeed_j = dspeed * scale;
+
+                balls[i].m_angular_velocity = (speed_i + dspeed_i).Cross(r_vec3D_norm / BALL_RADIUS);
+                balls[j].m_angular_velocity = (speed_j + dspeed_j).Cross(r_vec3D_norm / -BALL_RADIUS);
                 
                 // TODO: 有时候球与球碰撞时，速度已经被设置成0了，原因是速度本来就很小，经过时间后被上面的速度更新变成0了
                 if (balls[i].m_velocity.Length2D() == 0 && balls[j].m_velocity.Length2D() == 0) {

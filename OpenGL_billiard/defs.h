@@ -41,7 +41,7 @@ constexpr int options_snd_volume = 5;
 namespace game_physics {
 
 	// Mass [kg]
-	constexpr double BallMass = 0.2;
+	constexpr double BallMass = 0.16;
 
 	// m/s^2
 	constexpr double Gravity = 9.8;
@@ -50,12 +50,12 @@ namespace game_physics {
 	// Table slide-friction
 	constexpr double MuSlide = 0.65;
 	// Friction const between ball and ball
-	constexpr double MuBall = 0.1;
+	constexpr double MuBall = 1000000;
 	// 球的转动惯量
 	constexpr double IBall = (2.0 * BallMass * BALL_RADIUS * BALL_RADIUS) / 5.0;
 
 	// m/s
 	constexpr double SlideThreshSpeed = 0.01;
 	// Ball spin deceleration rate
-	constexpr double SpotR = 0.8;
+	constexpr double SpotR = 4;
 }
