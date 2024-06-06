@@ -16,7 +16,7 @@
 - 友好的用户界面
 - 光照效果与3D场景
 
-我们的项目代码已开源在https://github.com/DylanWRh/Billiard-OpenGL。
+我们的项目代码已开源在[Github](https://github.com/DylanWRh/Billiard-OpenGL)。
 
 ## 安装与运行
 
@@ -159,26 +159,31 @@ game.* , Table.* , Balls.* , Ball.* , Sphere.*
 
 #### 球面上某点线速度
 
-![equation](http://latex.codecogs.com/png.latex?\vec{v{_{a}}}%20=%20\vec{v}+%20(\vec{up}%20\times%20R\vec{\omega}))
+
+$\vec{v{_{a}}} = \vec{v}+ (\vec{up} \times R\vec{\omega})$
 
 #### 滑动摩擦建模
 
-![equation](http://latex.codecogs.com/png.latex?\dot{v}%20=%20-\mu%20g%20\frac{\vec{v_{a}}}{\left%20|%20\vec{v_{a}}%20\right%20|})
+	  
+$\dot{v} = -\mu g \dfrac{\vec{v_{a}}}{\left | \vec{v_{a}} \right |}$
 
-![equation](http://latex.codecogs.com/png.latex?\dot{w}%20=%20-\frac{5}{2}\frac{\mu%20g}{R}%20\frac{\vec{v_{a}}}{\left%20|%20\vec{v_{a}}%20\right%20|})
+$\dot{w} = -\frac{5}{2}\frac{\mu g}{R} \dfrac{\vec{v_{a}}}{\left | \vec{v_{a}} \right |}$
 
-![equation](http://latex.codecogs.com/png.latex?\dot{\omega}_{z}%20=%20-\frac{5}{2}\frac{M_{z}}{mR^2}sgn(\omega_{z}))
+$\dot{\omega}_{z} = -\dfrac{5}{2}\dfrac{M_{z}}{mR^2}sgn(\omega_{z})$
 
 #### 滚动摩擦建模
 
-![equation](http://latex.codecogs.com/png.latex?\dot{v}%20=%20-\frac{5}{7}\frac{M_{xy}}{mR}\frac{\vec{up}\times\vec{\omega}}{\left%20|%20\vec{w}%20\right%20|})
 
-![equation](http://latex.codecogs.com/png.latex?\dot{w}%20=%20-\frac{5}{7}\frac{M_{xy}}{mR^2}\frac{\vec{\omega}}{\left%20|%20\vec{w}%20\right%20|})
+$\dot{v} = -\dfrac{5}{7}\dfrac{M_{xy}}{mR}\dfrac{\vec{up}\times\vec{\omega}}{\left | \vec{w} \right |}$
+
+
+$\dot{w} = -\dfrac{5}{7}\dfrac{M_{xy}}{mR^2}\dfrac{\vec{\omega}}{\left | \vec{w} \right |}$
 
 where
 
-![equation](https://latex.codecogs.com/svg.image?M_{xy}=\frac{7}{5\sqrt{2}}R\mu&space;m&space;g)
-,![equation](https://latex.codecogs.com/svg.image?M_{z}=\frac{2}{3}\mu&space;m&space;g\rho)
+$M_{xy}=\dfrac{7}{5\sqrt{2}}R\mu mg$
+
+$M_{z}=\dfrac{2}{3}\mu mg\rho$
 
 以上是可能使用到物理公式（Based on [Han 2005](https://billiards.colostate.edu/physics_articles/Han_paper.pdf) paper）。实际上对上述公式，我们可能对其进行了部分简化。以及除了上述公式之外，我们还对于某些情况进行了简化建模。例如对于球与库之间的碰撞，我们将由于球面与库之间产生相对位移而造成的速度沿库边方向进行变化进行了简单的建模。具体来说，速度变化量正比于速度垂直撞击库的分量大小，正比于球面与库之间产生相对速度的大小。
 
